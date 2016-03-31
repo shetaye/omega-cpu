@@ -1,0 +1,3 @@
+build/*.o
+build/*.cf
+build/*_tb

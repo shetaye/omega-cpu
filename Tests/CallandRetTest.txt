@@ -1,0 +1,25 @@
+.text
+ADDI $r27,$r0,3072
+J main
+factorial:
+ADDI $r1,$r4,-1
+BZI $r1,is1
+ADDI $r1,$r4,0
+SW $r1,$r27
+SUBI $r27,$r27,4
+SUBI $r4,$r4,1
+CALL factorial
+ADDI $r27,$r27,4
+LW $r1,$r27
+MULT $r2,$r2,$r1,$r0
+J return
+is1:
+ADDI $r2,$r0,1
+return:
+RET
+main:
+ADDI $r4,$r0,5
+CALL factorial
+OUTP $r2,$p1
+loop:
+J loop
