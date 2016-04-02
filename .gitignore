@@ -1,3 +1,5 @@
 build/*.o
 build/*.cf
 build/*_tb
+build/*.bin
+build/*.ghw

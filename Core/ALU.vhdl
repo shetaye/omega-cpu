@@ -247,6 +247,22 @@ begin  -- Behavioral
                   OutputReady <= '1';
                   Status <= NormalAAndD;
                 end if;
+              when ImmediateMode =>
+                 SignExtendedImmediate := std_logic_vector(resize(signed(ImmediateValue_S), 32));
+                 OutputReady <= '1';
+                if signed(SignExtendedImmediate) = 0 then
+                  OutputReady <= '1';
+                  Carry_S <= '0';
+                  Status <= DivideOverflow;
+                  RegisterA_S <= (others => '0');
+                  RegisterD_S <= (others => '0');
+                else
+                  Carry_S <= '0';
+                  RegisterA_S <= "0" & std_logic_vector(signed(RegisterB) / signed(SignExtendedImmediate));
+                  RegisterD_S <= "0" & std_logic_vector(signed(RegisterB) rem signed(SignExtendedImmediate));
+                  OutputReady <= '1';
+                  Status <= NormalAAndD;
+                end if;
               when others =>
                 Carry_S <= '0';
                  OutputReady <= '1';
@@ -267,9 +283,13 @@ begin  -- Behavioral
                   when RegisterMode =>
                     RegisterD_S <= (others => '0');
                     RegisterA_S <= std_logic_vector(shift_right("0" & unsigned(RegisterB),to_integer("0" & unsigned(RegisterC))));
+                    OutputReady <= '1';
+                    Status <= NormalAOnly;
                   when ImmediateMode =>
                     RegisterD_S <= (others => '0');
                     RegisterA_S <= std_logic_vector(shift_right("0" & unsigned(RegisterB),to_integer(unsigned(ImmediateValue_S))));
+                    OutputReady <= '1';
+                    Status <= NormalAOnly;
                   when others =>
                     Carry_S <= '0';
                      OutputReady <= '1';

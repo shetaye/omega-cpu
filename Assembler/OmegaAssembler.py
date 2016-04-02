@@ -131,8 +131,8 @@ IS_RELATIVE = { "JR" : False,
                 "BNZ" : False,
                 "BNZI" : True}
 
-def printError(lineNumber,error):
-    print >> sys.stderr,"Line: %d,Error %s" % (lineNumber+1,error)
+def printError(lineNumber,error,line=[]):
+    print >> sys.stderr,"Line: %d (%s), Error %s" % (lineNumber+1," ".join(line),error)
 
 #### Operands ###
 
@@ -667,7 +667,9 @@ def readFile(filename):
     with open(filename, 'r') as f:
         for line in f:
             if line[0] != '#':
-                lines.append(line[:-1])
+                if line != "" and line[-1] == "\n":
+                    line = line[:-1]
+                lines.append(line)
     return lines
 
 def parse(inputStr):
@@ -706,11 +708,11 @@ def toAST(parsed):
             for o in operands:
                 if o is None:
                     errorsFound = True
-                    printError(lineNumber,"Malformed Operand")
+                    printError(lineNumber,"Malformed Operand",line=line)
                     continue
                 if not isinstance(o,Immediate) or o.immediate not in range(256):
                     errorsFound = True
-                    printError(lineNumber,"Byte accepts only numbers between 0 and 255")
+                    printError(lineNumber,"Byte accepts only numbers between 0 and 255",line=line)
                     continue
             if errorsFound:
                 continue
@@ -720,11 +722,11 @@ def toAST(parsed):
             operands = [parseOperand(o) for o in line[j+1:]]
             if len(operands) not in range(1):
                 errorsFound = True
-                printError(lineNumber,"Malformed .data directive")
+                printError(lineNumber,"Malformed .data directive",line=line)
                 continue
             if len(operands) == 1 and not isinstance(operands[0],Immediate):
                 errorsFound = True
-                printError(lineNumber,".data operand must be a number")
+                printError(lineNumber,".data operand must be a number",line=line)
                 continue
             address = operands[0].immediate if len(operands) == 1 else None
             ast.append(DataSegment(lineNumber, address))
@@ -732,11 +734,11 @@ def toAST(parsed):
             operands = [parseOperand(o) for o in line[j+1:]]
             if len(operands) not in range(2):
                 errorsFound = True
-                printError(lineNumber,"Malformed .text directive")
+                printError(lineNumber,"Malformed .text directive",line=line)
                 continue
             if len(operands) == 1 and not isinstance(operands[0],Immediate):
                 errorsFound = True
-                printError(lineNumber,".text operand must be a number")
+                printError(lineNumber,".text operand must be a number",line=line)
                 continue
             address = operands[0].immediate if len(operands) == 1 else None
             ast.append(TextSegment(lineNumber,address))
@@ -745,19 +747,19 @@ def toAST(parsed):
             for o in operands:
                 if o is None:
                     errorsFound = True
-                    printError(lineNumber,"Malformed Operand")
+                    printError(lineNumber,"Malformed Operand",line=line)
                     continue
             if errorsFound:
                 continue
             if FORMS[line[j]] == 1:
                 if len(operands) != 3:
                     errorsFound = True
-                    printError(lineNumber,"Instruction takes only 3 operands")
+                    printError(lineNumber,"Instruction takes only 3 operands",line=line)
                     continue
                 for o in operands:
                     if not isinstance(o,RegisterReference):
                         errorsFound = True
-                        printError(lineNumber,"Instruction only accepts registers")
+                        printError(lineNumber,"Instruction only accepts registers",line=line)
                         continue
                 if errorsFound:
                     continue
@@ -766,11 +768,11 @@ def toAST(parsed):
             elif FORMS[line[j]] == 2:
                 if len(operands) != 3:
                     errorsFound = True
-                    printError(lineNumber,"Instruction takes only 3 operands")
+                    printError(lineNumber,"Instruction takes only 3 operands",line=line)
                     continue
                 if not isinstance(operands[0],RegisterReference) or not isinstance(operands[1],RegisterReference) or not isinstance(operands[2],Immediate):
                     errorsFound = True
-                    printError(lineNumber,"Instruction must be in form Register, Register, Immediate")
+                    printError(lineNumber,"Instruction must be in form Register, Register, Immediate",line=line)
                     continue
                 if errorsFound:
                     continue
@@ -779,12 +781,12 @@ def toAST(parsed):
             elif FORMS[line[j]] == 3:
                 if len(operands) != 4:
                     errorsFound = True
-                    printError(lineNumber,"Instruction takes only 4 operands")
+                    printError(lineNumber,"Instruction takes only 4 operands",line=line)
                     continue
                 for o in operands:
                     if not isinstance(o,RegisterReference):
                         errorsFound = True
-                        printError(lineNumber,"Instruction only accepts registers")
+                        printError(lineNumber,"Instruction only accepts registers",line=line)
                         continue
                 if errorsFound:
                     continue
@@ -793,12 +795,12 @@ def toAST(parsed):
             elif FORMS[line[j]] == 4:
                 if len(operands) != 2:
                     errorsFound = True
-                    printError(lineNumber,"Instruction takes only 2 operands")
+                    printError(lineNumber,"Instruction takes only 2 operands",line=line)
                     continue
                 for o in operands:
                     if not isinstance(o,RegisterReference):
                         errorsFound = True
-                        printError(lineNumber,"Instruction only accepts registers")
+                        printError(lineNumber,"Instruction only accepts registers",line=line)
                         continue
                 if errorsFound:
                     continue
@@ -807,12 +809,12 @@ def toAST(parsed):
             elif FORMS[line[j]] == 5:
                 if len(operands) != 1:
                     errorsFound = True
-                    printError(lineNumber,"Instruction takes only 1 operand")
+                    printError(lineNumber,"Instruction takes only 1 operand",line=line)
                     continue
                 for o in operands:
                     if not isinstance(o,RegisterReference):
                         errorsFound = True
-                        printError(lineNumber,"Instruction only accepts registers")
+                        printError(lineNumber,"Instruction only accepts registers",line=line)
                         continue
                 if errorsFound:
                     continue
@@ -821,12 +823,12 @@ def toAST(parsed):
             elif FORMS[line[j]] == 6:
                 if len(operands) != 1:
                     errorsFound = True
-                    printError(lineNumber,"Instruction takes only 1 operand")
+                    printError(lineNumber,"Instruction takes only 1 operand",line=line)
                     continue
                 for o in operands:
                     if not isinstance(o,LabelReference):
                         errorsFound = True
-                        printError(lineNumber,"Instruction only accepts Label References")
+                        printError(lineNumber,"Instruction only accepts Label References",line=line)
                         continue
                 if errorsFound:
                     continue
@@ -835,11 +837,11 @@ def toAST(parsed):
             elif FORMS[line[j]] == 7:
                 if len(operands) != 2:
                     errorsFound = True
-                    printError(lineNumber,"Instruction takes only 2 operands")
+                    printError(lineNumber,"Instruction takes only 2 operands",line=line)
                     continue
                 if not isinstance(operands[0],RegisterReference) or not isinstance(operands[1],LabelReference):
                     errorsFound = True
-                    printError(lineNumber,"Instruction must be in form Register, Label Reference")
+                    printError(lineNumber,"Instruction must be in form Register, Label Reference",line=line)
                     continue
                 if errorsFound:
                     continue
@@ -848,11 +850,11 @@ def toAST(parsed):
             elif FORMS[line[j]] == 8:
                 if len(operands) != 3 and len(operands) != 2:
                     errorsFound = True
-                    printError(lineNumber,"Instruction takes only 3 or 2 operands")
+                    printError(lineNumber,"Instruction takes only 3 or 2 operands",line=line)
                     continue
                 if not isinstance(operands[0],RegisterReference) or not isinstance(operands[1],RegisterReference) or (len(operands)==3 and not isinstance(operands[2],Immediate)):
                     errorsFound = True
-                    printError(lineNumber,"Instruction must be in form Register, Register, Immediate")
+                    printError(lineNumber,"Instruction must be in form Register, Register, Immediate",line=line)
                     continue
                 if errorsFound:
                     continue
@@ -861,34 +863,34 @@ def toAST(parsed):
             elif FORMS[line[j]] == 9:
                 if len(operands) != 2:
                     errorsFound = True
-                    printError(lineNumber,"Instruction takes only 2 operands")
+                    printError(lineNumber,"Instruction takes only 2 operands",line=line)
                     continue
                 if not isinstance(operands[0],RegisterReference) or not isinstance(operands[1],PortReference):
                     errorsFound = True
-                    printError(lineNumber,"Instruction must be in form Register, Port")
+                    printError(lineNumber,"Instruction must be in form Register, Port",line=line)
                     continue
                 ast.append(OneRegisterOnePortMachineInstruction(lineNumber,line[j],operands,labels))
                 labels = []
             elif FORMS[line[j]] == 10:
                 if len(operands) != 2:
                     errorsFound = True
-                    printError(lineNumber,"Instruction takes only 2 operands")
+                    printError(lineNumber,"Instruction takes only 2 operands",line=line)
                     continue
                 if not isinstance(operands[0],RegisterReference) or not isinstance(operands[1],LabelReference):
                     errorsFound = True
-                    printError(lineNumber,"Instruction must be in form Register, Label")
+                    printError(lineNumber,"Instruction must be in form Register, Label",line=line)
                     continue
                 ast.append(LoadAddressPseudoInstruction(lineNumber,line[j],operands,labels))
                 labels = []
             elif FORMS[line[j]] == 11:
                 if len(operands) != 1:
                     errorsFound = True
-                    printError(lineNumber,"Instruction takes only 1 operand")
+                    printError(lineNumber,"Instruction takes only 1 operand",line=line)
                     continue
                 for o in operands:
                     if not isinstance(o,LabelReference):
                         errorsFound = True
-                        printError(lineNumber,"Instruction only accepts Label References")
+                        printError(lineNumber,"Instruction only accepts Label References",line=line)
                         continue
                 if errorsFound:
                     continue
@@ -905,7 +907,7 @@ def toAST(parsed):
                 labels = []
         else:
             errorsFound = True
-            printError(lineNumber,"Invalid Opcode '%s'" % line[j])
+            printError(lineNumber,"Invalid Opcode '%s'" % line[j],line=line)
             continue
 
     if errorsFound:
@@ -956,8 +958,9 @@ def main(argv):
         analyzed = analyze(ast)
         #print >> sys.stderr,ast.labelBindings
         #print >> sys.stderr,ast.instructionAddresses
-        machineCode = toMachineCode(ast)
-        outputStr = finalOutput(machineCode, TextOutputVisitor(sys.stdout))
+        if not analyzed:
+            machineCode = toMachineCode(ast)
+            outputStr = finalOutput(machineCode, TextOutputVisitor(sys.stdout))
     #print (machineCode)
 
 if __name__ == "__main__":
