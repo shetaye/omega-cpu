@@ -67,6 +67,7 @@ architecture Behavioral of Control is
   component PortController
     
     port (
+    CLK  : in std_logic;
     XMit : in word;
     Recv : out word;
     instruction : in word;
@@ -129,6 +130,7 @@ begin  -- Behavioral
     OutputReady => BranchOutReady);
 
   PortControl : PortController port map (
+    CLK => CLK,
     XMit => PortXMit,
     Recv => PortRecv,
     instruction => Instr_S,
