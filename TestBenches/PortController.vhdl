@@ -35,7 +35,6 @@ entity PortController is
   
 end PortController;
 architecture Behavioral of PortController is
-  signal input_line_index_s : integer := -1;
   signal Done_s : std_logic := '0';
   signal PortSending_s : std_logic := '0';
   signal nextWord : Word := (others => '0');
@@ -48,26 +47,23 @@ begin  -- PortController
   process
     variable input_line : line;
     variable input_char : character;
-    variable input_line_index : integer := -1; 
+    variable input_read : boolean := false; 
   begin  -- process
     PortReady <= '0';
     PortSending_s <= '0';
     wait until rising_edge(CPUReady) and GetOpcode(instruction) = OpcodePort and (GetOperator(instruction) = LoadByteSigned or GetOperator(instruction) = LoadHalfWordSigned or GetOperator(instruction) = LoadByteUnsigned or GetOperator(instruction) = LoadHalfWordUnsigned or GetOperator(instruction) = LoadWord) and getRegisterReferenceB(instruction) = "00001";  -- rising clock edge
     --wait until readControl = 1;
-     input_line_index := input_line_index_s;
-     if input_line_index = -1 then
+     if not input_read then
        readline(input,input_line);
-       input_line_index := 0;
      end if;
-     read(input_line,input_char);
+    if input_line'length > 0 then
+      read(input_line,input_char);
      nextWord <= "000000000000000000000000" & std_logic_vector(to_unsigned(character'pos(input_char),8));
-     if input_line_index + 1 >= input_line'length then
-       input_line_index := -1;
-     else
-       input_line_index := input_line_index + 1;
+      input_read := true;
+    else
+      nextWord <= "00000000000000000000000000001010";
+        input_read := false;
      end if;
-     input_line_index_s <= input_line_index;
-    --Recv <= nextWord;
     PortReady <= '1';
     PortSending_s <= '1';
     wait until CPUReady = '0';

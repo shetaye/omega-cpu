@@ -17,6 +17,4 @@
 byteIn:
 	INPB $r1,$p1
 	OUTPB $r1,$p1
-	ADDI $r1,$r0,10
-	OUTPB $r1,$p1
 	J byteIn
