@@ -1,0 +1,2 @@
+vhdl work ../../UARTClockManager.vhd
+vhdl work ../example_design/UARTClockManager_exdes.vhd
