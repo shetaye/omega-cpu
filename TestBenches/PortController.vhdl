@@ -23,6 +23,7 @@ use IEEE.Numeric_std.all;
 entity PortController is
 
   port (
+    CLK  : in std_logic;
     XMit : in Word;
     Recv : out Word;
     instruction : in Word;
@@ -34,21 +35,46 @@ entity PortController is
   
 end PortController;
 architecture Behavioral of PortController is
-
+  signal Done_s : std_logic := '0';
+  signal PortSending_s : std_logic := '0';
+  signal nextWord : Word := (others => '0');
+  --signal readControl : integer := 0;
 begin  -- PortController
-
-  PortReady <= '1';
-  PortSending <= '0';
-  
-  process (CPUReady, CPUSending)
-    variable c : integer;
+  PortSending <= PortSending_s;
+  Recv <= nextWord when PortSending_s = '1' else (others => '0');
+  Done <= Done_s;
+    
+  process
     variable input_line : line;
     variable input_char : character;
-    variable input_line_index : integer := -1; 
+    variable input_read : boolean := false; 
+  begin  -- process
+    PortReady <= '0';
+    PortSending_s <= '0';
+    wait until rising_edge(CPUReady) and GetOpcode(instruction) = OpcodePort and (GetOperator(instruction) = LoadByteSigned or GetOperator(instruction) = LoadHalfWordSigned or GetOperator(instruction) = LoadByteUnsigned or GetOperator(instruction) = LoadHalfWordUnsigned or GetOperator(instruction) = LoadWord) and getRegisterReferenceB(instruction) = "00001";  -- rising clock edge
+    --wait until readControl = 1;
+     if not input_read then
+       readline(input,input_line);
+     end if;
+    if input_line'length > 0 then
+      read(input_line,input_char);
+     nextWord <= "000000000000000000000000" & std_logic_vector(to_unsigned(character'pos(input_char),8));
+      input_read := true;
+    else
+      nextWord <= "00000000000000000000000000001010";
+        input_read := false;
+     end if;
+    PortReady <= '1';
+    PortSending_s <= '1';
+    wait until CPUReady = '0';
+  end process;
+  
+  process (CPUSending)
+    variable c : integer;
     variable out_line : line;
   begin  -- process
     if rising_edge(CPUSending) then  -- rising clock edge
-      case GetOperator(instruction) is 
+      case GetOperator(instruction) is
        when StoreByte|StoreHalfWord|StoreWord =>
          if CPUSending = '1' and GetRegisterReferenceB(instruction) = "00001" then
            c := to_integer(unsigned(XMit(7 downto 0)));
@@ -58,28 +84,15 @@ begin  -- PortController
            else
              writeline(output, out_line);
            end if;
-           Done <= '1';
+           Done_s <= '1';
          else
-           Done <= '0';
+           Done_s <= '0';
          end if;
-        when LoadByteSigned|LoadHalfWordSigned|LoadByteUnsigned|LoadHalfWordUnsigned|LoadWord =>
-         if CPUReady = '1' and getRegisterReferenceB(instruction) = "00001" then
-           if input_line_index = -1 then
-             readline(input,input_line);
-             input_line_index := 0;
-           end if;
-           read(input_line,input_char);
-           Recv <= std_logic_vector(to_unsigned(character'pos(input_char),8));
-           if input_line_index + 1 >= input_line'length then
-             input_line_index := -1;
-           else
-             input_line_index := input_line_index + 1;
-           end if;
-         end if;
-       when others => Done <= '0';
+       when others =>
+         Done_s <= '0';
       end case;
     else
-      Done <= '0';
+      Done_s <= '0';
     end if;
   end process;
 

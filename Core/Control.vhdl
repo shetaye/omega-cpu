@@ -67,6 +67,7 @@ architecture Behavioral of Control is
   component PortController
     
     port (
+    CLK  : in std_logic;
     XMit : in word;
     Recv : out word;
     instruction : in word;
@@ -99,7 +100,7 @@ architecture Behavioral of Control is
   signal MemControllerToWrite_S : Word := (others => '0');
   signal IRQ_S : std_logic_vector(23 downto 0) := (others => '0');
   signal ServicingInterrupt : std_logic := '0';
-  signal PortXMIt : Word;
+  signal PortXMit : Word;
   signal PortRecv : Word;
   signal PortCPUReady : std_logic := '0';
   signal PortCPUSending : std_logic := '0';
@@ -129,6 +130,7 @@ begin  -- Behavioral
     OutputReady => BranchOutReady);
 
   PortControl : PortController port map (
+    CLK => CLK,
     XMit => PortXMit,
     Recv => PortRecv,
     instruction => Instr_S,
@@ -261,30 +263,29 @@ begin  -- Behavioral
        when PortSetInstrIn =>
           case GetOperator(Instr_S) is
             when LoadByteUnsigned|LoadByteSigned|LoadHalfWordUnsigned|LoadHalfWordSigned|LoadWord =>
-              
               if PortReadyPort = '1' then
                 ReadValue := to_integer(unsigned(GetRegisterReferenceA(Instr_S)));
                 if ReadValue /= 0 then
                 Registers(ReadValue) <= PortRecv;
                 end if;
                 State <= Start;
-
-                PortCPUSending <= '0';
-                PortCPUReady <= '1';
-              else
                 PortCPUSending <= '0';
                 PortCPUReady <= '0';
+              else
+                PortCPUSending <= '0';
+                PortCPUReady <= '1';
+                
               end if;
             when StoreByte|StoreHalfWord|StoreWord =>
               if PortDone = '1' then
                 State <= Start;
                 PortXMit <= (others => '0');
                PortCPUSending <= '0';
-               PortCPUReady <= '1';
+               PortCPUReady <= '0';
               else
                PortXMit <= Registers(to_integer(unsigned(GetRegisterReferenceA(Instr_S))));
                 PortCPUSending <= '1';
-                PortCPUReady <= '0';
+                PortCPUReady <= '1';
               end if;
             when others => null;
           end case;
