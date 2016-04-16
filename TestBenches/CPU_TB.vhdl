@@ -41,6 +41,21 @@ architecture Behavioral of CPU_TB is
     
   end component MemoryController;
 
+  component PortController is
+    port (
+      CLK  : in std_logic;
+      XMit : in Word;
+      Recv : out Word;
+      SerialIn : in std_logic;
+      SerialOut : out std_logic;
+      instruction : in Word;
+      CPUReady : in std_logic;
+      CPUSending: in std_logic;
+      PortReady: out std_logic;
+      PortSending: out std_logic;
+      Done: out std_logic);
+  end component PortController;
+
   component Control is
 
     port(
@@ -50,6 +65,14 @@ architecture Behavioral of CPU_TB is
       MemControllerToWrite : out Word;
       MemControllerADDR : out Word;
       MemControllerEnable : out std_logic;
+      PortXmit : out Word;
+      PortRecv : in Word;
+      PortInstruction : out Word;
+      PortCPUReady : out std_logic;
+      PortCPUSending : out std_logic;
+      PortReady : in std_logic;
+      PortDone : in std_logic;
+      PortSending : out std_logic;	
       IRQ : in std_logic_vector(23 downto 0);
       Instr : out Word;
       RST : in std_logic);
@@ -66,7 +89,16 @@ architecture Behavioral of CPU_TB is
   signal MemoryPassthrough : std_logic := '0';
   signal CLK : std_logic := '0';
   signal RST : std_logic := '0';
-
+--port
+  signal PortXmit_s :  Word;
+  signal PortRecv_s : Word;
+  signal PortInstruction_s :  Word;
+  signal PortCPUReady_s :  std_logic;
+  signal PortCPUSending_s :  std_logic;
+  signal PortReady_s :  std_logic;
+  signal PortDone_s :  std_logic;
+  signal PortSending_s :  std_logic;
+  --mem
   signal MemControllerDone_M : std_logic;
   signal MemControllerFromRead_M : Word;
   signal MemControllerToWrite_M : Word;
@@ -92,6 +124,19 @@ architecture Behavioral of CPU_TB is
     Reset       => MemControllerReset_M,
     Done        => MemControllerDone_M);
 
+ PortControl : PortController port map (
+    CLK => CLK,
+    XMit => PortXMit_s,
+    Recv => PortRecv_s,
+    instruction => Instr_C,
+    CPUReady => PortCPUReady_s,
+    CPUSending => PortCPUSending_s,
+    SerialIn => '0',
+    PortReady => PortReady_s,
+    Done => PortDone_s,
+    PortSending => PortSending_s);
+
+  
   ControlTB : Control port map (
     CLK => CLK,
     MemControllerDone => MemControllerDone_C,
@@ -99,6 +144,14 @@ architecture Behavioral of CPU_TB is
     MemControllerToWrite => MemControllerToWrite_C,
     MemControllerADDR => MemControllerADDR_C,
     MemControllerEnable => MemControllerEnable_C,
+    PortXmit => PortXmit_s,
+    PortRecv => PortRecv_s,
+    PortInstruction => PortInstruction_s,
+    PortCPUReady => PortCPUReady_s,
+    PortCPUSending => PortCPUSending_s,
+    PortReady => PortReady_s,
+    PortDone =>  PortDone_s,
+    PortSending =>  PortSending_s,
     IRQ => (others => '0'),
     RST => RST,
     Instr => Instr_C);

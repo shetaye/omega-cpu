@@ -31,7 +31,9 @@ entity PortController is
     CPUSending: in std_logic;
     PortReady: out std_logic;
     PortSending: out std_logic;
-    Done: out std_logic);
+    Done: out std_logic;
+    SerialIn: in std_logic;
+    SerialOut: out std_logic);
   
 end PortController;
 architecture Behavioral of PortController is
@@ -40,6 +42,7 @@ architecture Behavioral of PortController is
   signal nextWord : Word := (others => '0');
   --signal readControl : integer := 0;
 begin  -- PortController
+  SerialOut <= '0';
   PortSending <= PortSending_s;
   Recv <= nextWord when PortSending_s = '1' else (others => '0');
   Done <= Done_s;

@@ -28,6 +28,14 @@ entity Control is
     MemControllerToWrite : out Word;
     MemControllerADDR : out Word;
     MemControllerEnable : out std_logic;
+	 PortXmit : out Word;
+	 PortRecv : in Word;
+	 PortInstruction : out Word;
+	 PortCPUReady : out std_logic;
+	 PortCPUSending : out std_logic;
+    PortReady : in std_logic;
+    PortDone : in std_logic;
+    PortSending : out std_logic;	 
     IRQ : in std_logic_vector(23 downto 0);
     RST : in std_logic;
     Instr : out Word
@@ -66,7 +74,8 @@ architecture Behavioral of Control is
 
   component PortController
     
-    port (
+    
+	 port (
     CLK  : in std_logic;
     XMit : in word;
     Recv : out word;
@@ -100,13 +109,13 @@ architecture Behavioral of Control is
   signal MemControllerToWrite_S : Word := (others => '0');
   signal IRQ_S : std_logic_vector(23 downto 0) := (others => '0');
   signal ServicingInterrupt : std_logic := '0';
-  signal PortXMit : Word;
-  signal PortRecv : Word;
-  signal PortCPUReady : std_logic := '0';
-  signal PortCPUSending : std_logic := '0';
+  signal PortXMit_s : Word;
+  signal PortRecv_s : Word;
+  signal PortCPUReady_s : std_logic := '0';
+  signal PortCPUSending_s : std_logic := '0';
   signal PortReadyPort : std_logic := '0';
   signal PortSendingPort : std_logic := '0';
-  signal PortDone : std_logic := '0';
+  signal PortDone_s : std_logic := '0';
   signal Carry : std_logic := '0';
 
 begin  -- Behavioral
@@ -129,21 +138,19 @@ begin  -- Behavioral
     CurrentPC   => Registers(31),
     OutputReady => BranchOutReady);
 
-  PortControl : PortController port map (
-    CLK => CLK,
-    XMit => PortXMit,
-    Recv => PortRecv,
-    instruction => Instr_S,
-    CPUReady => PortCPUReady,
-    CPUSending => PortCPUSending,
-    PortReady => PortReadyPort,
-    Done => PortDone,
-    PortSending => PortSendingPort);
-
+  
   MemControllerEnable <= MemControllerEnable_S;
   MemControllerADDR <= MemControllerADDR_S;
   MemControllerToWrite <= MemControllerToWrite_S;
-
+  
+  PortXMit <= PortXmit_s;
+  PortRecv_s <= PortRecv;
+  PortInstruction <= Instr_s;
+  PortCPUReady <= PortCPUReady_s;
+  PortCPUSending <= PortCPUSending_s;
+  PortReadyPort <= PortReady;
+  PortSending <= PortSendingPort;
+  
   process (Registers, Instr_S)
 
   begin  -- process
@@ -266,26 +273,26 @@ begin  -- Behavioral
               if PortReadyPort = '1' then
                 ReadValue := to_integer(unsigned(GetRegisterReferenceA(Instr_S)));
                 if ReadValue /= 0 then
-                Registers(ReadValue) <= PortRecv;
+                Registers(ReadValue) <= PortRecv_s;
                 end if;
                 State <= Start;
-                PortCPUSending <= '0';
-                PortCPUReady <= '0';
+                PortCPUSending_s <= '0';
+                PortCPUReady_s <= '0';
               else
-                PortCPUSending <= '0';
-                PortCPUReady <= '1';
+                PortCPUSending_s <= '0';
+                PortCPUReady_s <= '1';
                 
               end if;
             when StoreByte|StoreHalfWord|StoreWord =>
               if PortDone = '1' then
                 State <= Start;
-                PortXMit <= (others => '0');
-               PortCPUSending <= '0';
-               PortCPUReady <= '0';
+                PortXMit_s <= (others => '0');
+               PortCPUSending_s <= '0';
+               PortCPUReady_s <= '0';
               else
-               PortXMit <= Registers(to_integer(unsigned(GetRegisterReferenceA(Instr_S))));
-                PortCPUSending <= '1';
-                PortCPUReady <= '1';
+               PortXMit_s <= Registers(to_integer(unsigned(GetRegisterReferenceA(Instr_S))));
+                PortCPUSending_s <= '1';
+                PortCPUReady_s <= '1';
               end if;
             when others => null;
           end case;

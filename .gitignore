@@ -3,8 +3,13 @@ build/*.cf
 build/*_tb
 build/*.bin
 build/*.ghw
+Hardware/Omega/*.gise
+Hardware/Omega/*.html
+Hardware/Omega/_xmsgs
+Hardware/Omega/tmp
+Hardware/Omega/*.log
 Hardware/Omega/**/*.html
 Hardware/Omega/**/_xmsgs
 Hardware/Omega/**/tmp
 Hardware/Omega/**/*.log
-Hardware/Omega/iseconfig/Control.xreport
+Hardware/Omega/iseconfig
