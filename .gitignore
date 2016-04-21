@@ -3,9 +3,11 @@ build/*.cf
 build/*_tb
 build/*.bin
 build/*.ghw
+Hardware/Omega/webtalk_pn.xml
 Hardware/Omega/*.gise
 Hardware/Omega/*.html
 Hardware/Omega/_xmsgs
+Hardware/Omega/xst
 Hardware/Omega/tmp
 Hardware/Omega/*.log
 Hardware/Omega/**/*.html
@@ -13,3 +15,10 @@ Hardware/Omega/**/_xmsgs
 Hardware/Omega/**/tmp
 Hardware/Omega/**/*.log
 Hardware/Omega/iseconfig
+Hardware/Omega/OmegaTop.cmd_log
+Hardware/Omega/OmegaTop.lso
+Hardware/Omega/OmegaTop.prj
+Hardware/Omega/OmegaTop.syr
+Hardware/Omega/OmegaTop.xst
+Hardware/Omega/OmegaTop_xst.xrpt
+Hardware/Omega/ipcore_dir/UARTClockManager.ncf

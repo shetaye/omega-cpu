@@ -16,6 +16,11 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.NUMERIC_STD.ALL;
+library open16750;
+use open16750.UART;
+use work.Constants.ALL;
+
 entity PortController is
   port (
     CLK  : in std_logic;
@@ -75,7 +80,7 @@ signal xmit_buffer_ready_s     : std_logic;
 signal xmit_enable_s           : std_logic := '0';
 signal was_read_s              : std_logic := '0';
 signal recv_data_ready_s       : std_logic;
-signal dout_s                  : std_logic_vector(7 downto 0));
+signal dout_s                  : std_logic_vector(7 downto 0);
 begin
 recv <= recv_s;
 portReady <= portReady_s;
@@ -113,7 +118,7 @@ if rising_edge(clk) then
 		 
 		 if portSending_s = '0' then
 		   portReady_s <= recv_data_ready_s;
-			if recv_data_ready_s and CPUReady then
+			if recv_data_ready_s = '1' and CPUReady = '1' then
 			  portSending_s <= '1';
 			  dout_s <= recv_s;
 			  was_read_s <= '1';
@@ -132,7 +137,7 @@ elsif GetOpcode(instruction) = OpcodePort and
 		 getRegisterReferenceB(instruction) = "00001" then
 		 
 		 if done_s = '0' then
-			if CPUReady = '1' and xmit_buffer_ready = '1' then
+			if CPUReady = '1' and xmit_buffer_ready_s = '1' then
 			  din_s <= Xmit;
 			  done_s <= '1';
 			  xmit_enable_s <= '1';
@@ -143,7 +148,6 @@ elsif GetOpcode(instruction) = OpcodePort and
 			xmit_enable_s <= '0';
 		 end if;
 	end if;
-end if;
 end process;
 end Behavioral;
 

@@ -22,7 +22,7 @@ use IEEE.Numeric_std.all;
 entity MemoryController is
 
   port (
-    
+    CLK         : in  std_logic;
     Address     : in  word;
     Enable      : in  std_logic;
     ToWrite     : in  word;

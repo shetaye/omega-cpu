@@ -30,7 +30,7 @@ architecture Behavioral of CPU_TB is
   component  MemoryController is
 
     port (
-      
+      CLK         : in std_logic;
       Address     : in  word;
       ToWrite     : in  word;
       FromRead    : out word;
@@ -122,7 +122,8 @@ architecture Behavioral of CPU_TB is
     Enable      => MemControllerEnable_M,
     Instruction => Instr_M,
     Reset       => MemControllerReset_M,
-    Done        => MemControllerDone_M);
+    Done        => MemControllerDone_M,
+    CLK         => CLK);
 
  PortControl : PortController port map (
     CLK => CLK,
