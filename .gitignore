@@ -22,3 +22,4 @@ Hardware/Omega/OmegaTop.syr
 Hardware/Omega/OmegaTop.xst
 Hardware/Omega/OmegaTop_xst.xrpt
 Hardware/Omega/ipcore_dir/UARTClockManager.ncf
+Hardware/Omega/OmegaTop.ngr

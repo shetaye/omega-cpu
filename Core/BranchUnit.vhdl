@@ -59,7 +59,7 @@ begin  -- Behavioral
   ImmediateAddress_S <= GetImmediateAddress(Instruction);
   ImmediateConditionalAddress_S <= GetImmediateConditionalAddress(Instruction);
 
-  Branch: process (Opcode_S, Operator_S, RegisterReferenceA, RegisterReferenceB, ImmediateAddress_S, RegisterA, RegisterB, CurrentPC)
+  Branch: process (Opcode_S, Operator_S, RegisterReferenceA, RegisterReferenceB, ImmediateAddress_S, RegisterA, RegisterB, CurrentPC, ImmediateConditionalAddress_s)
   begin  -- process
     if Opcode_S = OpcodeBranch then
       case Operator_S is
