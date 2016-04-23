@@ -75,9 +75,11 @@ begin  -- PortController
   process (CPUSending)
     variable c : integer;
     variable out_line : line;
+    variable currentOperator : Operator;
   begin  -- process
     if rising_edge(CPUSending) then  -- rising clock edge
-      case GetOperator(instruction) is
+      currentOperator := GetOperator(instruction);
+      case currentOperator is
        when StoreByte|StoreHalfWord|StoreWord =>
          if CPUSending = '1' and GetRegisterReferenceB(instruction) = "00001" then
            c := to_integer(unsigned(XMit(7 downto 0)));

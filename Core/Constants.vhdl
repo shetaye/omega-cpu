@@ -33,48 +33,48 @@ package Constants is
 
   function GetOpcode (
     W : Word)
-    return Opcode;
+    return std_logic_vector; --Opcode
 
   function GetOperator (
     W : Word)
-    return Operator;
+    return std_logic_vector; --Operator
 
   function GetRegisterReferenceA (
     W : Word)
-    return RegisterReference;
+    return std_logic_vector; --RegisterReference
   function GetRegisterReferenceB (
     W : Word)
-    return RegisterReference;
+    return std_logic_vector; --RegisterReference
   function GetRegisterReferenceC   (
     W : Word)
-    return RegisterReference;
+    return std_logic_vector; --RegisterReference
   function GetRegisterReferenceD (
     W : Word)
-    return RegisterReference;
+    return std_logic_vector; --RegisterReference
 
   function GetImmediateValue (
     W : Word)
-    return ImmediateValue;
+    return std_logic_vector; --ImmediateValue
 
   function GetImmediateAddress (
     W : Word)
-    return ImmediateAddress;
+    return std_logic_vector; --ImmediateAddress
 
   function GetImmediateConditionalAddress
     ( W : Word)
-    return ImmediateConditionalAddress;
+    return std_logic_vector; --ImmediateConditionalAddress
 
   function SignExtendImmediateValue (
     VALUE : ImmediateValue)
-    return Word;
+    return std_logic_vector; --Word
 
   function SignExtendImmediateAddress (
     ADDR : ImmediateAddress)
-    return Word;
+    return std_logic_vector; --Word
 
   function SignExtendImmediateConditionalAddress (
     ADDR : ImmediateConditionalAddress)
-    return Word;
+    return std_logic_vector; --Word
 
   function GetIRQ (
     IRQ : std_logic_vector(23 downto 0))
@@ -110,60 +110,60 @@ end Constants;
 package body Constants is
   function GetOpcode (
     W : Word)
-    return Opcode is
+    return std_logic_vector is --Opcode
   begin
     return w (31 downto 29);
   end;
 
   function GetOperator (
     W : Word)
-    return Operator is
+    return std_logic_vector is --Operator
   begin
     return w (28 downto 26);
   end;
 
   function GetRegisterReferenceA (
     W : Word)
-    return RegisterReference is
+    return std_logic_vector is --RegisterReference
   begin
     return w (25 downto 21);
   end;
   function GetRegisterReferenceB (
     W : Word)
-    return RegisterReference is
+    return std_logic_vector is --RegisterReference
   begin
     return w (20 downto 16);
   end;
   function GetRegisterReferenceC   (
     W : Word)
-    return RegisterReference is
+    return std_logic_vector is --RegisterReference
   begin
     return w (15 downto 11);
   end;
   function GetRegisterReferenceD (
     W : Word)
-    return RegisterReference is
+    return std_logic_vector is --RegisterReference
   begin
     return w (10 downto 6);
   end;
 
   function GetImmediateValue (
     W : Word)
-    return ImmediateValue is
+    return std_logic_vector is --ImmediateValue
   begin
     return w (15 downto 0);
   end;
 
   function GetImmediateAddress (
     W : Word)
-    return ImmediateAddress is
+    return std_logic_vector is --ImmediateAddress
   begin
     return w (25 downto 0);
   end;
 
   function GetImmediateConditionalAddress (
     W : Word)
-    return ImmediateConditionalAddress is
+    return std_logic_vector is --ImmediateConditionalAddress
   begin
     return w (20 downto 0);
   end;
@@ -171,7 +171,7 @@ package body Constants is
   function SignExtendImmediateValue (
    VALUE : ImmediateValue)
     
-    return Word is
+    return std_logic_vector is --Word
   begin  -- SignExtendImmediate
     return std_logic_vector(resize(signed(VALUE), 32));
   end SignExtendImmediateValue;
@@ -179,7 +179,7 @@ package body Constants is
   function SignExtendImmediateAddress (
     ADDR : ImmediateAddress)
     
-    return Word is
+    return std_logic_vector is --Word
   begin  -- SignExtendImmediateAddress
     return std_logic_vector(resize(signed(unsigned(ADDR) & "00"), 32));
   end SignExtendImmediateAddress;
@@ -187,7 +187,7 @@ package body Constants is
   function SignExtendImmediateConditionalAddress (
     ADDR : ImmediateConditionalAddress)
     
-    return Word is
+    return std_logic_vector is --Word
   begin  -- SignExtendImmediateAddress
     return std_logic_vector(resize(signed(unsigned(ADDR) & "00"), 32));
   end SignExtendImmediateConditionalAddress;

@@ -177,6 +177,8 @@ begin  -- Behavioral
     variable NextInterrupt : integer := -1;
     variable SignExtendedImmediate : std_logic_vector(31 downto 0);
     variable ImmediateValue_v : std_logic_vector(15 downto 0);
+    variable currentOpcode : Opcode;
+    variable currentOperator : Operator;
   begin  -- process StateMachine
     if RST = '1' then
       Registers <= (others => (others => '0'));
@@ -222,7 +224,8 @@ begin  -- Behavioral
             MemControllerEnable_S <= '1';
           end if;
         when DecodeOpcode =>
-          case GetOpcode(Instr_S) is
+          currentOpcode := GetOpcode(Instr_S);
+          case currentOpcode is
             when OpcodeLogical|OpcodeArithmetic|OpcodeShift|OpcodeRelational =>
               State <= ALUSetInstrIn;
             when OpcodeMemory =>
@@ -238,7 +241,8 @@ begin  -- Behavioral
           end if;
           MemControllerEnable_S <= '0';
         when MemSetInstrIn =>
-          case GetOperator(Instr_S) is
+          currentOperator := GetOperator(Instr_S);
+          case currentOperator is
             when LoadByteUnsigned|LoadByteSigned|LoadHalfWordUnsigned|LoadHalfWordSigned|LoadWord =>
               --MemControllerADDR_S <= Registers(to_integer(unsigned(GetRegisterReferenceB(Instr_S))));
               ImmediateValue_v := GetImmediateValue(Instr_S);
@@ -268,7 +272,8 @@ begin  -- Behavioral
             when others => null;
           end case;
        when PortSetInstrIn =>
-          case GetOperator(Instr_S) is
+          currentOperator := GetOperator(Instr_S);
+          case currentOperator is
             when LoadByteUnsigned|LoadByteSigned|LoadHalfWordUnsigned|LoadHalfWordSigned|LoadWord =>
               if PortReadyPort = '1' then
                 ReadValue := to_integer(unsigned(GetRegisterReferenceA(Instr_S)));

@@ -78,6 +78,7 @@ main:
 	LA $r4,keyPrompt
 	CALL print_string
 	CALL readKey
+	BZI $r2,main
 	ADDI $r16,$r2,0
 	
 encryptdecrypt_loop:

@@ -52,11 +52,13 @@ begin  -- Behavioral
   FromRead <= FromRead_S;
   
   process (Enable, Instruction, Address, Reset)
+  variable currentOperator : Operator;
   begin  -- process
     if Reset = '1' then
       Memory <= (others => (others => '0'));
     elsif Enable = '1' then
-    case GetOperator(Instruction) is
+    currentOperator := GetOperator(Instruction);
+    case currentOperator is
       when LoadByteUnsigned =>
         FromRead_S <= "000000000000000000000000" & Memory(to_integer(unsigned(Address)));
        Done <= '1';
