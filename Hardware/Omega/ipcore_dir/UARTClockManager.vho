@@ -54,7 +54,8 @@
 -- "Output    Output      Phase     Duty      Pk-to-Pk        Phase"
 -- "Clock    Freq (MHz) (degrees) Cycle (%) Jitter (ps)  Error (ps)"
 ------------------------------------------------------------------------------
--- CLK_OUT1____15.360______0.000______50.0_____1502.083____150.000
+-- CLK_OUT1____15.360______0.000______50.0______407.321____200.759
+-- CLK_OUT2____32.000______0.000______50.0______348.651____200.759
 --
 ------------------------------------------------------------------------------
 -- "Input Clock   Freq (MHz)    Input Jitter (UI)"
@@ -70,6 +71,7 @@ port
   CLK_IN1           : in     std_logic;
   -- Clock out ports
   CLK_OUT1          : out    std_logic;
+  CLK_OUT2          : out    std_logic;
   -- Status and control signals
   RESET             : in     std_logic
  );
@@ -85,6 +87,7 @@ your_instance_name : UARTClockManager
     CLK_IN1 => CLK_IN1,
     -- Clock out ports
     CLK_OUT1 => CLK_OUT1,
+    CLK_OUT2 => CLK_OUT2,
     -- Status and control signals
     RESET  => RESET);
 -- INST_TAG_END ------ End INSTANTIATION Template ------------

@@ -50,9 +50,9 @@
 add wave -noupdate -divider {Input clocks}
 add wave -noupdate -format Logic /UARTClockManager_tb/CLK_IN1
 add wave -noupdate -divider {Output clocks}
-add wave -noupdate -format Logic /UARTClockManager_tb/dut/clk
+add wave -noupdate -format Literal -expand /UARTClockManager_tb/dut/clk
 add wave -noupdate -divider Status/control
 add wave -noupdate -format Logic /UARTClockManager_tb/RESET
 add wave -noupdate -divider Counters
 add wave -noupdate -format Literal -radix hexadecimal /UARTClockManager_tb/COUNT
-add wave -noupdate -format Literal -radix hexadecimal /UARTClockManager_tb/dut/counter
+add wave -noupdate -format Literal -radix hexadecimal -expand /UARTClockManager_tb/dut/counter

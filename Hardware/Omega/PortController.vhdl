@@ -24,6 +24,7 @@ use work.Constants.ALL;
 entity PortController is
   port (
     CLK  : in std_logic;
+	 CLK16x : in std_logic;
     XMit : in Word;
     Recv : out Word;
     SerialIn : in std_logic;
@@ -58,17 +59,6 @@ architecture Behavioral of PortController is
       recv_data_ready       : out std_logic;
       dout               : out std_logic_vector(7 downto 0));
   end component UART;
-  component UARTClockManager is
-    port
-      (-- Clock in ports
-        CLK_IN1           : in     std_logic;
-        -- Clock out ports
-        CLK_OUT1          : out    std_logic;
-        -- Status and control signals
-        RESET             : in     std_logic
-        );
-  end component UARTClockManager;	
-  signal clk_16x_s : std_logic := '0';
   signal recv_s : Word := (others => '0');
   signal portReady_s : std_logic := '0';
   signal portSending_s : std_logic := '0';
@@ -91,7 +81,7 @@ begin
     ) port map (
       clk => clk,
       rst => rst_s,
-      clk_16x => clk_16x_s,
+      clk_16x => CLK16x,
       serial_in => serialIn,
       serial_out => serialOut,
       din => din_s,
@@ -101,11 +91,6 @@ begin
       recv_data_ready => recv_data_ready_s,
       dout => dout_s
       );
-  clockManager : UARTClockManager port map (
-    CLK_IN1 => clk,
-    CLK_OUT1 => clk_16x_s,
-    RESET => '0'
-    );
   process (clk) begin
     if rising_edge(clk) then
       if GetOpcode(instruction) = OpcodePort and

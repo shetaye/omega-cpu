@@ -7,6 +7,8 @@ CONFIG PROHIBIT=P144;
 CONFIG PROHIBIT=P69;
 CONFIG PROHIBIT=P60;
 
+PIN "clockManager/clkout1_buf.O" CLOCK_DEDICATED_ROUTE = FALSE;
+
 NET CLK            LOC="P94"  | IOSTANDARD=LVTTL | PERIOD=31.25ns;               # CLK
 NET RX             LOC="P46"  | IOSTANDARD=LVTTL;                                # RX
 NET TX             LOC="P141" | IOSTANDARD=LVTTL | DRIVE=8 | SLEW=FAST;          # TX

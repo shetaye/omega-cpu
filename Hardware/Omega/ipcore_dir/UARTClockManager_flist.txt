@@ -50,3 +50,4 @@ UARTClockManager.xdc
 UARTClockManager.xise
 UARTClockManager_flist.txt
 UARTClockManager_xmdf.tcl
+_xmsgs/pn_parser.xmsgs

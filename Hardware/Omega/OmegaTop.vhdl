@@ -40,10 +40,21 @@ architecture Behavioral of OmegaTop is
       Done        : out std_logic);
     
   end component MemoryController;
-
+  component UARTClockManager is
+    port
+      (-- Clock in ports
+        CLK_IN1           : in     std_logic;
+        -- Clock out ports
+        CLK_OUT1          : out    std_logic;
+        CLK_OUT2          : out    std_logic;
+        -- Status and control signals
+        RESET             : in     std_logic
+        );
+  end component UARTClockManager;
   component PortController is
     port (
       CLK  : in std_logic;
+		CLK16x : in std_logic;
       XMit : in Word;
       Recv : out Word;
       SerialIn : in std_logic;
@@ -80,7 +91,8 @@ architecture Behavioral of OmegaTop is
     
   end component Control;
 
-
+  signal CLK_s : std_logic;
+  signal CLK_16x_s : std_logic;
   signal MemControllerDone_s : std_logic := '0';
   signal MemControllerFromRead_s : Word := (others => '0');
   signal MemControllerToWrite_s : Word := (others => '0');
@@ -108,10 +120,11 @@ begin
     Instruction => Instr_s,
     Reset       => RST,
     Done        => MemControllerDone_s,
-    CLK         => CLK);
+    CLK         => CLK_s);
 
  PortControl : PortController port map (
-    CLK => CLK,
+    CLK => CLK_s,
+	 CLK16x => CLK_16x_s,
     XMit => PortXMit_s,
     Recv => PortRecv_s,
     instruction => Instr_s,
@@ -122,10 +135,15 @@ begin
     PortReady => PortReady_s,
     Done => PortDone_s,
     PortSending => PortSending_s);
-
+clockManager : UARTClockManager port map (
+    CLK_IN1 => clk,
+    CLK_OUT1 => CLK_16x_s,
+	 CLK_OUT2 => CLK_s,
+    RESET => '0'
+    );
   
   Omega_Control : Control port map (
-    CLK => CLK,
+    CLK => CLK_s,
     MemControllerDone => MemControllerDone_s,
     MemControllerFromRead => MemControllerFromRead_s,
     MemControllerToWrite => MemControllerToWrite_s,

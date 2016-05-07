@@ -153,9 +153,9 @@ begin  -- Behavioral
 		Memory(97) <= "11111111";
 		Memory(98) <= "11111111";
 		Memory(99) <= "11001011";
-      for I in 100 to 4095 loop
-			Memory(I) <= "00000000";
-		end loop;
+      --for I in 100 to 4095 loop
+		--	Memory(I) <= "00000000";
+		--end loop;
      end procedure initialize;
   begin  -- process
   if rising_edge(CLK) then
