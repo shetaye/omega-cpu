@@ -109,8 +109,8 @@ architecture Behavioral of Control is
   signal MemControllerToWrite_S : Word := (others => '0');
   signal IRQ_S : std_logic_vector(23 downto 0) := (others => '0');
   signal ServicingInterrupt : std_logic := '0';
-  signal PortXMit_s : Word;
-  signal PortRecv_s : Word;
+  signal PortXMit_s : Word := (others => '0');
+  signal PortRecv_s : Word := (others => '0');
   signal PortCPUReady_s : std_logic := '0';
   signal PortCPUSending_s : std_logic := '0';
   signal PortReadyPort : std_logic := '0';

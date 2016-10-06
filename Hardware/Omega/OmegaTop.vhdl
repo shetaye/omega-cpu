@@ -16,6 +16,7 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
+library open16750;
 use work.Constants.ALL;
 
 entity OmegaTop is
@@ -55,6 +56,7 @@ architecture Behavioral of OmegaTop is
     port (
       CLK  : in std_logic;
 		CLK16x : in std_logic;
+		rst : in std_logic;
       XMit : in Word;
       Recv : out Word;
       SerialIn : in std_logic;
@@ -99,11 +101,12 @@ architecture Behavioral of OmegaTop is
   signal MemControllerADDR_s : Word := (others => '0');
   signal MemControllerEnable_s : std_logic := '0';
   signal Instr_s : Word := (others => '0');
-  signal RST : std_logic := '0';
+--  signal RST_Count : integer := 5;
+  signal RST : std_logic := '1';
 --port
-  signal PortXmit_s :  Word;
-  signal PortRecv_s : Word;
-  signal PortInstruction_s :  Word;
+  signal PortXmit_s :  Word := (others => '0');
+  signal PortRecv_s : Word := (others => '0');
+  signal PortInstruction_s :  Word := (others => '0');
   signal PortCPUReady_s :  std_logic;
   signal PortCPUSending_s :  std_logic;
   signal PortReady_s :  std_logic;
@@ -125,6 +128,7 @@ begin
  PortControl : PortController port map (
     CLK => CLK_s,
 	 CLK16x => CLK_16x_s,
+	 rst => rst,
     XMit => PortXMit_s,
     Recv => PortRecv_s,
     instruction => Instr_s,
@@ -161,6 +165,16 @@ clockManager : UARTClockManager port map (
     RST => RST,
     Instr => Instr_s);
 
+--endReset : process(CLK_s)
+--begin
+--	if rising_edge(CLK_s) then
+--		if RST_Count /= 0 then
+--			RST_Count <= RST_Count - 1;
+--		else
+--			RST <= '0';
+--		end if;
+--	end if;
+--end process endReset;
 
 end Behavioral;
 
