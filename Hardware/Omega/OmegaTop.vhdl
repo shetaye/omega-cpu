@@ -23,7 +23,13 @@ entity OmegaTop is
  port(
 	CLK : in std_logic;
 	RX : in std_logic;
-	TX : out std_logic
+	TX : out std_logic;
+	SRAM_addr     : out std_logic_vector(20 downto 0);
+   SRAM_OE       : out std_logic;
+   SRAM_CE       : out std_logic;
+   SRAM_WE       : out std_logic;
+   SRAM_data     : inout  std_logic_vector(7 downto 0)
+
  );
 end OmegaTop;
 
@@ -38,7 +44,12 @@ architecture Behavioral of OmegaTop is
       Instruction : in  word;
       Enable      : in std_logic;
       Reset       : in std_logic;
-      Done        : out std_logic);
+      Done        : out std_logic;
+		SRAM_addr     : out std_logic_vector(20 downto 0);
+      SRAM_OE       : out std_logic;
+      SRAM_CE       : out std_logic;
+      SRAM_WE       : out std_logic;
+      SRAM_data     : inout  std_logic_vector(7 downto 0));
     
   end component MemoryController;
   component UARTClockManager is
@@ -56,7 +67,6 @@ architecture Behavioral of OmegaTop is
     port (
       CLK  : in std_logic;
 		CLK16x : in std_logic;
-		rst : in std_logic;
       XMit : in Word;
       Recv : out Word;
       SerialIn : in std_logic;
@@ -101,8 +111,6 @@ architecture Behavioral of OmegaTop is
   signal MemControllerADDR_s : Word := (others => '0');
   signal MemControllerEnable_s : std_logic := '0';
   signal Instr_s : Word := (others => '0');
---  signal RST_Count : integer := 5;
-  signal RST : std_logic := '1';
 --port
   signal PortXmit_s :  Word := (others => '0');
   signal PortRecv_s : Word := (others => '0');
@@ -121,14 +129,18 @@ begin
     FromRead    => MemControllerFromRead_s,
     Enable      => MemControllerEnable_s,
     Instruction => Instr_s,
-    Reset       => RST,
+    Reset       => '0',
     Done        => MemControllerDone_s,
-    CLK         => CLK_s);
+    CLK         => CLK_s,
+	 SRAM_addr   => SRAM_addr,
+	 SRAM_OE     => SRAM_OE,
+	 SRAM_CE     => SRAM_CE,
+	 SRAM_WE     => SRAM_WE,
+	 SRAM_data   => SRAM_data);
 
  PortControl : PortController port map (
     CLK => CLK_s,
 	 CLK16x => CLK_16x_s,
-	 rst => rst,
     XMit => PortXMit_s,
     Recv => PortRecv_s,
     instruction => Instr_s,
@@ -162,7 +174,7 @@ clockManager : UARTClockManager port map (
     PortDone =>  PortDone_s,
     PortSending =>  PortSending_s,
     IRQ => (others => '0'),
-    RST => RST,
+    RST => '0',
     Instr => Instr_s);
 
 --endReset : process(CLK_s)

@@ -21,8 +21,8 @@ use ieee.numeric_std.all;
 package Constants is
 
   subtype Byte is std_logic_vector (7 downto 0);
-  -- FIXME: Change "12" to "4095" when using GHDL simulator.
-  type MemoryArray is array(0 to 12) of Byte;
+  -- FIXME: Change "16" to "4095" when using GHDL simulator.
+  type MemoryArray is array(0 to 110) of Byte;
 
   subtype Word is std_logic_vector (31 downto 0);
   subtype Opcode is std_logic_vector (2 downto 0);

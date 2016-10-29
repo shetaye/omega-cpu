@@ -205,7 +205,6 @@ begin  -- Behavioral
                  OutputReady <= '1';
                 Status <= GenericError;
             end case;
-
           when OperatorMultiply =>           -- Multiply
             case Operator_S(0) is
               when RegisterMode =>
@@ -229,45 +228,45 @@ begin  -- Behavioral
                 Status <= GenericError;
             end case;
 
-          when OperatorDivide =>           -- Divide And Remainder
-            case Operator_S(0) is
-              when RegisterMode =>
-                
-               OutputReady <= '1';
-                if signed(RegisterC) = 0 then
-                  OutputReady <= '1';
-                  Carry_S <= '0';
-                  Status <= DivideOverflow;
-                  RegisterA_S <= (others => '0');
-                  RegisterD_S <= (others => '0');
-                else
-                  Carry_S <= '0';
-                  RegisterA_S <= "0" & std_logic_vector(signed(RegisterB) / signed(RegisterC));
-                  RegisterD_S <= "0" & std_logic_vector(signed(RegisterB) rem signed(RegisterC));
-                  OutputReady <= '1';
-                  Status <= NormalAAndD;
-                end if;
-              when ImmediateMode =>
-                 SignExtendedImmediate := std_logic_vector(resize(signed(ImmediateValue_S), 32));
-                 OutputReady <= '1';
-                if signed(SignExtendedImmediate) = 0 then
-                  OutputReady <= '1';
-                  Carry_S <= '0';
-                  Status <= DivideOverflow;
-                  RegisterA_S <= (others => '0');
-                  RegisterD_S <= (others => '0');
-                else
-                  Carry_S <= '0';
-                  RegisterA_S <= "0" & std_logic_vector(signed(RegisterB) / signed(SignExtendedImmediate));
-                  RegisterD_S <= "0" & std_logic_vector(signed(RegisterB) rem signed(SignExtendedImmediate));
-                  OutputReady <= '1';
-                  Status <= NormalAAndD;
-                end if;
-              when others =>
-                Carry_S <= '0';
-                 OutputReady <= '1';
-                Status <= GenericError;
-            end case;
+--          when OperatorDivide =>           -- Divide And Remainder
+--            case Operator_S(0) is
+--              when RegisterMode =>
+--                
+--               OutputReady <= '1';
+--                if signed(RegisterC) = 0 then
+--                  OutputReady <= '1';
+--                  Carry_S <= '0';
+--                  Status <= DivideOverflow;
+--                  RegisterA_S <= (others => '0');
+--                  RegisterD_S <= (others => '0');
+--                else
+--                  Carry_S <= '0';
+--                  RegisterA_S <= "0" & std_logic_vector(signed(RegisterB) / signed(RegisterC));
+--                  RegisterD_S <= "0" & std_logic_vector(signed(RegisterB) rem signed(RegisterC));
+--                  OutputReady <= '1';
+--                  Status <= NormalAAndD;
+--                end if;
+--              when ImmediateMode =>
+--                 SignExtendedImmediate := std_logic_vector(resize(signed(ImmediateValue_S), 32));
+--                 OutputReady <= '1';
+--                if signed(SignExtendedImmediate) = 0 then
+--                  OutputReady <= '1';
+--                  Carry_S <= '0';
+--                  Status <= DivideOverflow;
+--                  RegisterA_S <= (others => '0');
+--                  RegisterD_S <= (others => '0');
+--                else
+--                  Carry_S <= '0';
+--                  RegisterA_S <= "0" & std_logic_vector(signed(RegisterB) / signed(SignExtendedImmediate));
+--                  RegisterD_S <= "0" & std_logic_vector(signed(RegisterB) rem signed(SignExtendedImmediate));
+--                  OutputReady <= '1';
+--                  Status <= NormalAAndD;
+--                end if;
+--              when others =>
+--                Carry_S <= '0';
+--                 OutputReady <= '1';
+--                Status <= GenericError;
+--            end case;
             
           when others =>
             Carry_S <= '0';

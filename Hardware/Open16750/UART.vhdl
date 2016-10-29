@@ -129,7 +129,7 @@ begin
 
   uart_wrapped: uart_16750 port map (
                                 CLK     => clk,
-                                RST     => rst,
+                                RST     => '0',
                                 BAUDCE  => clk_16x,
                                 CS      => CS_s,
                                 WR      => WR_s,
@@ -157,7 +157,7 @@ begin
   recv_data_ready <= recv_data_ready_s;
   xmit_buffer_ready <= xmit_buffer_ready_s;
   
-  init: process (clk, rst)
+  init: process (clk)
     function LCR_lower_7 return std_logic_vector is
       variable rv : std_logic_vector(6 downto 0) := "0000000";
     begin
@@ -234,12 +234,15 @@ begin
       end case;
     end procedure uart_write;
   begin  -- process init
-    if rst = '1' then
-      rst_s <= '1';
-      init_stage <= start;
-      xmit_buffer_ready_s <= '0';
-      recv_data_ready_s <= '0';
-    elsif falling_edge(clk) then
+--    if rising_edge(clk) then
+--  	   if rst = '1' then
+--			rst_s <= '1';
+--			init_stage <= start;
+--			xmit_buffer_ready_s <= '0';
+--			recv_data_ready_s <= '0';
+--		end if;
+--    els
+	 if falling_edge(clk) then
       case init_stage is
         when start =>
           rst_s <= '1';

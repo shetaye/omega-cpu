@@ -56,3 +56,13 @@ Hardware/Omega/OmegaTop_usage.xml
 Hardware/Omega/_ngo
 Hardware/Omega/ipcore_dir/edit_UARTClockManager.tcl
 Hardware/Omega/xlnx_auto_0_xdb
+Hardware/Omega/OmegaTopTB_beh.prj
+Hardware/Omega/OmegaTopTB_isim_beh.exe
+Hardware/Omega/OmegaTopTB_isim_beh.wdb
+Hardware/Omega/*.wcfg
+Hardware/Omega/fuse.xmsgs
+Hardware/Omega/fuseRelaunch.cmd
+Hardware/Omega/isim.cmd
+Hardware/Omega/isim/
+Hardware/Omega/pepExtractor.prj
+Hardware/Omega/xilinxsim.ini

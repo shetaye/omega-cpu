@@ -25,7 +25,6 @@ entity PortController is
   port (
     CLK  : in std_logic;
 	 CLK16x : in std_logic;
-	 rst : in std_logic;
     XMit : in Word;
     Recv : out Word;
     SerialIn : in std_logic;
@@ -64,7 +63,7 @@ architecture Behavioral of PortController is
   signal portReady_s : std_logic := '0';
   signal portSending_s : std_logic := '0';
   signal done_s : std_logic := '0';
-  signal rst_s                   : std_logic := '0';
+  signal rst_s                   : std_logic := '1';
 -- This clock should run at 16 times the baud rate.
   signal din_s                   : std_logic_vector(7 downto 0) := (others => '0');
   signal xmit_buffer_ready_s     : std_logic;
@@ -73,7 +72,7 @@ architecture Behavioral of PortController is
   signal recv_data_ready_s       : std_logic;
   signal dout_s                  : std_logic_vector(7 downto 0);
 begin
-  rst_s <= rst;
+
   recv <= recv_s;
   portReady <= portReady_s;
   portSending <= portSending_s;
@@ -93,6 +92,13 @@ begin
       recv_data_ready => recv_data_ready_s,
       dout => dout_s
       );
+  process (clk) begin
+	if rising_edge(clk) then
+		if rst_s = '1' then
+		   rst_s <= '0';
+		end if;
+	end if;
+  end process;
   process (clk) begin
     if rising_edge(clk) then
       if GetOpcode(instruction) = OpcodePort and
