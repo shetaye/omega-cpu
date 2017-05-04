@@ -13,6 +13,15 @@ NET CLK            LOC="P94"  | IOSTANDARD=LVTTL | PERIOD=31.25ns;              
 NET RX             LOC="P46"  | IOSTANDARD=LVTTL;                                # RX
 NET TX             LOC="P141" | IOSTANDARD=LVTTL | DRIVE=8 | SLEW=FAST;          # TX
 
+NET leds(0)        LOC="P55"  | IOSTANDARD=LVTTL | DRIVE=8 | SLEW=FAST;          # C13
+NET leds(1)        LOC="P50"  | IOSTANDARD=LVTTL | DRIVE=8 | SLEW=FAST;          # C14
+NET leds(2)        LOC="P47"  | IOSTANDARD=LVTTL | DRIVE=8 | SLEW=FAST;          # C15
+NET leds(3)        LOC="P121" | IOSTANDARD=LVTTL;                                # A5
+NET leds(4)        LOC="P123" | IOSTANDARD=LVTTL;                                # A6
+NET leds(5)        LOC="P124" | IOSTANDARD=LVTTL;                                # A7
+NET leds(6)        LOC="P126" | IOSTANDARD=LVTTL;                                # A8
+NET leds(7)        LOC="P127" | IOSTANDARD=LVTTL;                                # A9
+
 NET SRAM_ADDR(0)   LOC="P7"   | IOSTANDARD=LVTTL;                                # SRAM_ADDR0
 NET SRAM_ADDR(1)   LOC="P8"   | IOSTANDARD=LVTTL;                                # SRAM_ADDR1
 NET SRAM_ADDR(2)   LOC="P9"   | IOSTANDARD=LVTTL;                                # SRAM_ADDR2

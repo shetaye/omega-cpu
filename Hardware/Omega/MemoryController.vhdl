@@ -34,7 +34,8 @@ entity MemoryController is
     SRAM_OE       : out std_logic;
     SRAM_CE       : out std_logic;
     SRAM_WE       : out std_logic;
-    SRAM_data     : inout  std_logic_vector(7 downto 0)
+    SRAM_data     : inout  std_logic_vector(7 downto 0);
+	 Status_Debug  : out std_logic_vector(7 downto 0)
 	 );
   
 end MemoryController;
@@ -50,17 +51,33 @@ architecture Behavioral of MemoryController is
  constant StoreHalfWord : Operator := "110";
  constant StoreWord : Operator := "111";
  
- constant Memory : MemoryArray := ("00000000","00000000","10000001","10100100","01000001","00000000","00100100","01110100","00001010","00000000","00100000","11011000","01011011","00000000","00100100","01110100","00001001","00000000","00100000","11011000","01100001","00000000","00100100","01110100","00000110","00000000","00100000","11011000","01111011","00000000","00100100","01110100","00001100","00000000","00100000","11011000","00000011","00000000","00000000","11001000","00000000","00000000","10000001","10110100","11110101","11111111","11111111","11001011","11111110","11111111","11111111","11001011","10111111","11111111","10000100","00100100","00001101","00000000","10000100","00100100","00011010","00000000","00100100","01110100","00000010","00000000","00100000","11011000","11100110","11111111","10000100","00100100","01000001","00000000","10000100","00100100","11110111","11111111","11111111","11001011","10011111","11111111","10000100","00100100","00001101","00000000","10000100","00100100","00011010","00000000","00100100","01110100","00000010","00000000","00100000","11011000","11100110","11111111","10000100","00100100","01100001","00000000","10000100","00100100","11110000","11111111","11111111","11001011","00000000","00000000","00000000");--(others => (others => '0'));
+ -- outputTest (absolute jump)
+ --constant BootImage : MemoryArray := ("01000001","00000000","00100000","00100100","00000000","00000000","00100001","10110100","00000001","00000000","00000000","11000100","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000");
+ -- outputTest (relative jump)
+ constant BootImage : MemoryArray := ("01000001","00000000","00100000","00100100","00000000","00000000","00100001","10110100","11111111","11111111","11111111","11001011","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000","00000000");
+ -- ROT13
+ --constant BootImage : MemoryArray := ("00000000","00000000","10000001","10100100","01000001","00000000","00100100","01110100","00001010","00000000","00100000","11011000","01011011","00000000","00100100","01110100","00001001","00000000","00100000","11011000","01100001","00000000","00100100","01110100","00000110","00000000","00100000","11011000","01111011","00000000","00100100","01110100","00001100","00000000","00100000","11011000","00000011","00000000","00000000","11001000","00000000","00000000","10000001","10110100","11110101","11111111","11111111","11001011","11111110","11111111","11111111","11001011","10111111","11111111","10000100","00100100","00001101","00000000","10000100","00100100","00011010","00000000","00100100","01110100","00000010","00000000","00100000","11011000","11100110","11111111","10000100","00100100","01000001","00000000","10000100","00100100","11110111","11111111","11111111","11001011","10011111","11111111","10000100","00100100","00001101","00000000","10000100","00100100","00011010","00000000","00100100","01110100","00000010","00000000","00100000","11011000","11100110","11111111","10000100","00100100","01100001","00000000","10000100","00100100","11110000","11111111","11111111","11001011","00000000","00000000","00000000");--(others => (others => '0'));
  signal FromRead_S : Word := (others => '0');
  signal NeedsInit : std_logic := '1';
- 
+ signal BootImageIndex : Integer := 0;
+ signal Done_s : std_logic := '0';
+ signal SRAM_addr_s : std_logic_vector(20 downto 0) := (others => '0');
+ signal SRAM_data_s : std_logic_vector(7 downto 0); --:= (others => 'Z');
+ signal SRAM_OE_s : std_logic := '1';
+ signal SRAM_WE_s : std_logic := '1';
+ signal SRAM_CE_s : std_logic := '1';
+ signal AddressOffset : integer := 0;
+ signal Status_Debug_s : std_logic_vector(7 downto 0) := (others => '0');
 begin  -- Behavioral
-  SRAM_addr <= (others => '0');
-  SRAM_data <= (others => 'Z');
-  SRAM_OE <= '1';
-  SRAM_WE <= '1';
-  SRAM_CE <= '1';
-  FromRead <= FromRead_S;
+
+  SRAM_addr <= SRAM_addr_s;
+  SRAM_data <= SRAM_data_s when SRAM_OE_s = '1' else (others => 'Z');
+  SRAM_OE <= SRAM_OE_s;
+  SRAM_WE <= SRAM_WE_s;
+  SRAM_CE <= '0';
+    FromRead <= FromRead_S;
+	 Done <= Done_s;
+	 Status_Debug <= Status_Debug_S;
   
   process (CLK)--(Enable, Instruction, Address, Reset)
 --     procedure initialize is begin
@@ -180,63 +197,120 @@ begin  -- Behavioral
   begin  -- process
   if rising_edge(CLK) then
     if NeedsInit = '1' then
+	   if BootImageIndex = BootImage'Length then
+			SRAM_we_s <= '1';
+--			SRAM_addr_s <= "000000000000001101011";
+--			SRAM_oe_s <= '0';
+--			BootImageIndex <= BootImageIndex + 1;
+--		elsif BootImageIndex = (BootImage'Length + 1) then
+			NeedsInit <= '0';
+--			Status_Debug_S <= SRAM_data xor "11111111";
+			SRAM_oe_s <= '1';
+		else
+			SRAM_data_s <= BootImage(BootImageIndex);
+			SRAM_addr_s <= std_logic_vector(to_unsigned(BootImageIndex,21));
+		   SRAM_we_s <= '0';
+			BootImageIndex <= BootImageIndex + 1;
+		end if;
       --Memory <= (others => (others => '0'));
 --		initialize;
-		NeedsInit <= '0';
     elsif Enable = '1' then
 	 current_operator := GetOperator(Instruction);
     case current_operator is
       when LoadByteUnsigned =>
-        FromRead_S <= "000000000000000000000000" & Memory(to_integer(unsigned(Address)));
-       Done <= '1';
+		  if SRAM_oe_s = '1' then
+				SRAM_addr_s <= Address(20 downto 0);
+				SRAM_oe_s <= '0';
+				Done_s <= '0';
+			else
+				FromRead_S <= "000000000000000000000000" & SRAM_data;
+				SRAM_oe_s <= '1';
+				Done_s <= '1';
+			end if;
       when LoadByteSigned =>
-        FromRead_S <= std_logic_vector(resize(signed(Memory(to_integer(unsigned(Address)))), 32));
-         Done <= '1';
+		  if SRAM_oe_s = '1' then
+				SRAM_addr_s <= Address(20 downto 0);
+				SRAM_oe_s <= '0';
+				Done_s <= '0';
+			else
+				FromRead_S <= std_logic_vector(resize(signed(SRAM_data),32));
+				SRAM_oe_s <= '1';
+				Done_s <= '1';
+			end if;
       when LoadHalfWordUnsigned =>
-        FromRead_S <= "0000000000000000" & Memory(to_integer(unsigned(Address)) + 1) & Memory(to_integer(unsigned(Address)));
-         Done <= '1';
+			if SRAM_oe_s = '1' then
+				SRAM_addr_s <= Address(20 downto 0);
+				SRAM_oe_s <= '0';
+				AddressOffset <= 0;
+				Done_s <= '0';
+		   elsif AddressOffset < 1 then
+				SRAM_addr_s <= std_logic_vector(unsigned(Address(20 downto 0)) + to_unsigned(AddressOffset + 1,20));
+				AddressOffset <= AddressOffset + 1;
+				FromRead_S(8*AddressOffset+7 downto 8*AddressOffset) <= SRAM_data;
+			else
+				FromRead_S(8*AddressOffset+7 downto 8*AddressOffset) <= SRAM_data;
+				FromRead_S(31 downto 16) <= (others => '0');
+				AddressOffset <= 0;
+				SRAM_oe_s <= '1';
+				Done_s <= '1';
+			end if;
       when LoadHalfWordSigned =>
-       FromRead_S <= std_logic_vector(
-                     resize(
-                       signed(
-                         Memory(
-                           to_integer(
-                             unsigned(Address)
-                           )
-                           + 1
-                         )
-                       ) &
-                       signed(
-                         Memory(
-                           to_integer(
-                             unsigned(Address)
-                           )
-                         )
-                       ),
-                       32
-                     )
-                   );
-        Done <= '1';
+			if SRAM_oe_s = '1' then
+				SRAM_addr_s <= Address(20 downto 0);
+				SRAM_oe_s <= '0';
+				AddressOffset <= 0;
+				Done_s <= '0';
+		   elsif AddressOffset < 1 then
+				SRAM_addr_s <= std_logic_vector(unsigned(Address(20 downto 0)) + to_unsigned(AddressOffset + 1,20));
+				AddressOffset <= AddressOffset + 1;
+				FromRead_S(8*AddressOffset+7 downto 8*AddressOffset) <= SRAM_data;
+			else
+				FromRead_S(8*AddressOffset+7 downto 8*AddressOffset) <= SRAM_data;
+				if SRAM_data(7) = '1' then
+				   FromRead_S(31 downto 16) <= "1111111111111111";
+				else
+				   FromRead_S(31 downto 16) <= "0000000000000000";
+				end if;
+				AddressOffset <= 0;
+				SRAM_oe_s <= '1';
+				Done_s <= '1';
+			end if;
       when LoadWord =>
-        FromRead_S <=  Memory(to_integer(unsigned(Address)) + 3) & Memory(to_integer(unsigned(Address)) + 2) & Memory(to_integer(unsigned(Address)) + 1) & Memory(to_integer(unsigned(Address)));
-         Done <= '1';
+			if SRAM_oe_s = '1' then
+				SRAM_addr_s <= Address(20 downto 0);
+				SRAM_oe_s <= '0';
+				AddressOffset <= 0;
+				Done_s <= '0';
+		   elsif AddressOffset < 3 then
+				SRAM_addr_s <= std_logic_vector(unsigned(Address(20 downto 0)) + to_unsigned(AddressOffset+1,20));
+				FromRead_S(8*AddressOffset+7 downto 8*AddressOffset) <= SRAM_data;
+				AddressOffset <= AddressOffset + 1;
+			else
+				FromRead_S(8*AddressOffset+7 downto 8*AddressOffset) <= SRAM_data;
+				AddressOffset <= 0;
+				SRAM_oe_s <= '1';
+				Done_s <= '1';
+				Status_Debug_S <= Address(9 downto 2) xor "11111111";
+			end if;
       when StoreByte =>
 --        Memory(to_integer(unsigned(Address))) <= ToWrite(7 downto 0);
-         Done <= '1';
+         Done_s <= '1';
       when StoreHalfWord =>
 --        Memory(to_integer(unsigned(Address))) <= ToWrite(7 downto 0);
 --        Memory(to_integer(unsigned(Address)) + 1) <= ToWrite(15 downto 8);
-         Done <= '1';
+         Done_s <= '1';
       when StoreWord =>
 --        Memory(to_integer(unsigned(Address))) <= ToWrite(7 downto 0);
 --        Memory(to_integer(unsigned(Address)) + 1) <= ToWrite(15 downto 8);
 --        Memory(to_integer(unsigned(Address)) + 2) <= ToWrite(23 downto 16);
 --        Memory(to_integer(unsigned(Address)) + 3) <= ToWrite(31 downto 24);
-         Done <= '1';
+         Done_s <= '1';
       when others => null;
     end case;
   else
-    Done <= '0';
+    SRAM_oe_s <= '1';
+	 SRAM_we_s <= '1';
+    Done_s <= '0';
   end if;
   end if;
   end process;

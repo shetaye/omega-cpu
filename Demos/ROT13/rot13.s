@@ -32,16 +32,25 @@ out:
 nonLetter:
 	J out
 uppercase:
-	SUBI $r4,$r4,65
+	ADDI $r4,$r4,-65
 	ADDI $r4,$r4,13
-	ADDI $r15,$r0,26
-	DIV $r0,$r4,$r15,$r4
+	LTI $r1,$r4,26
+	BNZI $r1,uppercaseNoSubtract
+	ADDI $r4,$r4,-26
+uppercaseNoSubtract:	
+#ADDI $r15,$r0,26
+#DIV $r0,$r4,$r15,$r4
+	
 	ADDI $r4,$r4,65
 	J out
 lowercase:
-	SUBI $r4,$r4,97
+	ADDI $r4,$r4,-97
 	ADDI $r4,$r4,13
-	ADDI $r15,$r0,26
-	DIV $r0,$r4,$r15,$r4
+	LTI $r1,$r4,26
+	BNZI $r1,lowercaseNoSubtract
+	ADDI $r4,$r4,-26
+lowercaseNoSubtract:	
+#ADDI $r15,$r0,26
+#DIV $r0,$r4,$r15,$r4
 	ADDI $r4,$r4,97
 	J out

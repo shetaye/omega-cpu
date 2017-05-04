@@ -24,6 +24,7 @@ entity OmegaTop is
 	CLK : in std_logic;
 	RX : in std_logic;
 	TX : out std_logic;
+	LEDS : out std_logic_vector(7 downto 0);
 	SRAM_addr     : out std_logic_vector(20 downto 0);
    SRAM_OE       : out std_logic;
    SRAM_CE       : out std_logic;
@@ -49,7 +50,8 @@ architecture Behavioral of OmegaTop is
       SRAM_OE       : out std_logic;
       SRAM_CE       : out std_logic;
       SRAM_WE       : out std_logic;
-      SRAM_data     : inout  std_logic_vector(7 downto 0));
+      SRAM_data     : inout  std_logic_vector(7 downto 0);
+		Status_Debug  : out std_logic_vector(7 downto 0));
     
   end component MemoryController;
   component UARTClockManager is
@@ -98,7 +100,8 @@ architecture Behavioral of OmegaTop is
       PortSending : out std_logic;	
       IRQ : in std_logic_vector(23 downto 0);
       Instr : out Word;
-      RST : in std_logic);
+      RST : in std_logic;
+	   ProgramCounter : out Word);
     
     
   end component Control;
@@ -111,6 +114,8 @@ architecture Behavioral of OmegaTop is
   signal MemControllerADDR_s : Word := (others => '0');
   signal MemControllerEnable_s : std_logic := '0';
   signal Instr_s : Word := (others => '0');
+  signal ProgramCounter_s : Word := (others => '0');
+  signal MemControllerStatus_Debug : std_logic_vector(7 downto 0) := (others => '0');
 --port
   signal PortXmit_s :  Word := (others => '0');
   signal PortRecv_s : Word := (others => '0');
@@ -136,7 +141,8 @@ begin
 	 SRAM_OE     => SRAM_OE,
 	 SRAM_CE     => SRAM_CE,
 	 SRAM_WE     => SRAM_WE,
-	 SRAM_data   => SRAM_data);
+	 SRAM_data   => SRAM_data,
+	 Status_Debug => MemControllerStatus_Debug);
 
  PortControl : PortController port map (
     CLK => CLK_s,
@@ -175,8 +181,11 @@ clockManager : UARTClockManager port map (
     PortSending =>  PortSending_s,
     IRQ => (others => '0'),
     RST => '0',
-    Instr => Instr_s);
-
+    Instr => Instr_s,
+	 ProgramCounter => ProgramCounter_s);
+	 
+	 LEDS <= MemControllerStatus_Debug;
+	 
 --endReset : process(CLK_s)
 --begin
 --	if rising_edge(CLK_s) then

@@ -33,6 +33,7 @@ USE ieee.std_logic_1164.ALL;
 USE ieee.numeric_std.ALL;
 
 library work;
+use work.Constants.ALL;
  
 ENTITY OmegaTopTB IS
 END OmegaTopTB;
@@ -45,7 +46,13 @@ ARCHITECTURE behavior OF OmegaTopTB IS
     PORT(
          CLK : IN  std_logic;
          RX : IN  std_logic;
-         TX : OUT  std_logic
+         TX : OUT  std_logic;
+			LEDS : out std_logic_vector(7 downto 0);
+			SRAM_addr     : out std_logic_vector(20 downto 0);
+			SRAM_OE       : out std_logic;
+			SRAM_CE       : out std_logic;
+			SRAM_WE       : out std_logic;
+			SRAM_data     : inout  std_logic_vector(7 downto 0)
         );
     END COMPONENT;
     
@@ -54,9 +61,16 @@ ARCHITECTURE behavior OF OmegaTopTB IS
    signal CLK : std_logic := '0';
    signal RX : std_logic := '0';
 
+
  	--Outputs
    signal TX : std_logic;
-
+	signal LEDS : std_logic_vector(7 downto 0);
+   signal SRAM_addr : std_logic_vector(20 downto 0);
+   signal SRAM_OE : std_logic;
+   signal SRAM_CE : std_logic;
+   signal SRAM_WE : std_logic;
+	signal SRAM_data : std_logic_vector(7 downto 0);
+	signal memory : MemoryArray := (others => (others => '0'));
    -- Clock period definitions
    constant CLK_period : time := 31.25 ns;
  
@@ -66,7 +80,13 @@ BEGIN
    uut: OmegaTop PORT MAP (
           CLK => CLK,
           RX => RX,
-          TX => TX
+          TX => TX,
+			 LEDS => LEDS,
+			 SRAM_addr => SRAM_addr,
+			 SRAM_OE => SRAM_OE,
+			 SRAM_CE => SRAM_CE,
+			 SRAM_WE => SRAM_WE,
+			 SRAM_data => SRAM_data
         );
 
    -- Clock process definitions
@@ -77,19 +97,34 @@ BEGIN
 		CLK <= '1';
 		wait for CLK_period/2;
    end process;
+	read_proc: process(SRAM_oe,SRAM_addr)
+   begin
+	   if SRAM_oe = '1' then
+			sram_data <= (others => 'Z');
+		else
+			sram_data <= memory(to_integer(unsigned(SRAM_ADDR)));
+		end if;
+	end process read_proc;
  
-
+	write_proc: process(SRAM_we,SRAM_addr)
+	begin
+		if SRAM_we = '0' then
+			memory(to_integer(unsigned(SRAM_ADDR))) <= sram_data;
+		end if;
+	end process write_proc;
+	
    -- Stimulus process
-   stim_proc: process
-   begin		
-      -- hold reset state for 100 ns.
-      wait for 100 ns;	
 
-      wait for CLK_period*10;
-
-      -- insert stimulus here 
-
-      wait;
-   end process;
+--   stim_proc: process
+--   begin		
+--      -- hold reset state for 100 ns.
+--      wait for 100 ns;	
+--
+--      wait for CLK_period*10;
+--
+--      -- insert stimulus here 
+--
+--      wait;
+--   end process;
 
 END;

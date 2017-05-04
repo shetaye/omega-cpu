@@ -38,7 +38,8 @@ entity Control is
     PortSending : out std_logic;	 
     IRQ : in std_logic_vector(23 downto 0);
     RST : in std_logic;
-    Instr : out Word
+    Instr : out Word;
+	 ProgramCounter : out Word
     );
   
   
@@ -150,7 +151,7 @@ begin  -- Behavioral
   PortCPUSending <= PortCPUSending_s;
   PortReadyPort <= PortReady;
   PortSending <= PortSendingPort;
-  
+  ProgramCounter <= registers(31);
   process (Registers, Instr_S)
 
   begin  -- process
