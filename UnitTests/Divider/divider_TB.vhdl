@@ -36,21 +36,23 @@ begin  -- Behavioral
     Divisor    => Divisor_S,
     Quotient   => Quotient_S,
     Remainder  => Remainder_S,
-    Dividend => Dividend_S);
+    Dividend   => Dividend_S);
   test: process
     variable dividend_V : integer;
     variable divisor_V : integer;
   begin  -- process
-    for dividend_V in 0 to 65535 loop
+    for dividend_V in 1 to 4 loop
       report "Iteration" severity note;
-      for divisor_V in 0 to dividend_V loop
+      for divisor_V in 1 to dividend_V loop
         wait until rising_edge(CLK_S);
         Dividend_S <= std_logic_vector(to_unsigned(dividend_V,32));
         Divisor_S <= std_logic_vector(to_unsigned(divisor_V,32));
         Enable_S <= '1';
         wait until Ready_S = '1';
+        assert divisor_V /= 0 report "error" severity error;
         assert (divisor_V /= 0 and Overflow_S = '0') or (divisor_V = 0 and Overflow_S = '1') report "Overflow failure" severity error;
-        assert Dividend_S = std_logic_vector(unsigned(Quotient_S) * unsigned(Divisor_S) + unsigned(Remainder_S)) report "Incorrect Answer" severity error;
+        report "Q "&integer'image(to_integer(unsigned(Quotient_S)));
+        assert Dividend_S = std_logic_vector(unsigned(Quotient_S) * unsigned(Divisor_S) + unsigned(Remainder_S)) report "Incorrect Answer "&integer'image(to_integer(unsigned(Quotient_S))) severity error;
         Enable_S <= '0';
       end loop;  -- divisor
     end loop;  -- dividend

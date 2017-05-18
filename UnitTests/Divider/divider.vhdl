@@ -35,7 +35,7 @@ begin
     if rising_edge(CLK) then
       if Enable_S = '1' then
         if Divisor_S = "00000000000000000000000000000000" then
-          Ready <= '1';
+          Ready_S <= '1';
           Overflow_S <= '1';
           Quotient_S <= (others => '0');
           Remainder_S <= (others => '0');
