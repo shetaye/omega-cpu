@@ -12,7 +12,11 @@ entity Divider_sequential is
     Divisor   : in  std_logic_vector(31 downto 0);
     Dividend  : in  std_logic_vector(31 downto 0);
     Remainder : out std_logic_vector(31 downto 0);
-    Quotient  : out std_logic_vector(31 downto 0));
+    Quotient  : out std_logic_vector(31 downto 0);
+    IsSigned  : in  std_logic);
+
+  type machineState is (WaitingToStart,Dividing,Output);
+  
 end Divider_sequential;
 architecture Behavioral of Divider_sequential is
  signal Enable_S : std_logic := '0';
@@ -23,50 +27,62 @@ architecture Behavioral of Divider_sequential is
  signal Remainder_S : std_logic_vector(63 downto 0) := (others => '0');
  signal Dividend_S : std_logic_vector(31 downto 0) := (others => '0');
  signal is_running : integer := 0;
+ signal state : machineState := WaitingToStart;
 begin
   Enable_S <= Enable;
   Ready <= Ready_S;
   Overflow <= Overflow_S;
-  Divisor_S <= Divisor;
-  Quotient <= Quotient_S;
-  Remainder <= Remainder_S(63 downto 32);
-  Dividend_S <= Dividend;
+  Divisor_S <= Divisor when (isSigned = '0' or Divisor(31) = '0') else std_logic_vector(-signed(Divisor));
+  Quotient <= Quotient_S when (isSigned = '0' or Divisor(31) = Dividend(31)) else std_logic_vector(-signed(Quotient_S));
+  Remainder <= Remainder_S(63 downto 32) when (isSigned = '0' or Dividend(31) = '0') else std_logic_vector(-signed(Remainder_S(63 downto 32)));
+  Dividend_S <= Dividend when (isSigned = '0' or Dividend(31) = '0') else std_logic_vector(-signed(Dividend));
+  
   Divide: process (CLK)
     variable Remainder_V : std_logic_vector(63 downto 0) := (others => '0');
   begin
     if rising_edge(clk) then
-      if Enable_S = '1' then
-        if is_running = 0 then
-          if Divisor_S = "00000000000000000000000000000000" then
+      case state is
+        when WaitingToStart =>
+          if enable_s = '1' then
+            if Divisor_S = "00000000000000000000000000000000" then
+              state <= Output;
+              Ready_S <= '1';
+              Overflow_S <= '1';
+            else
+              state <= Dividing;
+              is_running <= 1;
+              Ready_S <= '0';
+              Quotient_S <= (others => '0');
+              Overflow_S <= '0';
+              Remainder_S(63 downto 32) <= (others => '0');
+              Remainder_S(31 downto 0) <= Dividend_S;
+            end if;
+          end if;
+        when Dividing =>
+          if is_running <= 32 then
+            is_running <= is_running + 1;
+            Remainder_V := Remainder_S(62 downto 0) & "0";
+            Remainder_V(63 downto 32) := std_logic_vector(to_signed(to_integer(signed(Remainder_V(63 downto 32))) - to_integer(signed(Divisor_S)),32));
+            if Remainder_V(63) = '1' then
+              Remainder_S <= Remainder_S(62 downto 0) & "0";--Remainder_V(63 downto 32) := std_logic_vector(to_unsigned(to_integer(unsigned(Remainder_S(63 downto 32))) + to_integer(unsigned(Divisor_S)),32));
+              Quotient_S <= Quotient_S(30 downto 0) & "0";
+            else
+              Remainder_S <= Remainder_V;
+              Quotient_S <= Quotient_S(30 downto 0) & "1";
+            end if;
+          elsif is_running = 33 then
+            state <= Output;
+          end if;        
+        when Output =>
+          if enable_s = '1' then
             Ready_S <= '1';
-            Overflow_S <= '1';
-            Quotient_S <= (others => '0');
-            Remainder_S <= (others => '0');
           else
-            is_running <= 1;
             Ready_S <= '0';
-            Quotient_S <= (others => '0');
             Overflow_S <= '0';
-            Remainder_S(63 downto 32) <= (others => '0');
-            Remainder_S(31 downto 0) <= Dividend_S;
+            State <= WaitingToStart;
           end if;
-        elsif is_running <= 32 then
-          is_running <= is_running + 1;
-          Remainder_V := Remainder_S(62 downto 0) & "0";
-          Remainder_V(63 downto 32) := std_logic_vector(to_signed(to_integer(signed(Remainder_V(63 downto 32))) - to_integer(signed(Divisor_S)),32));
-          if Remainder_V(63) = '1' then
-            Remainder_S <= Remainder_S(62 downto 0) & "0";--Remainder_V(63 downto 32) := std_logic_vector(to_unsigned(to_integer(unsigned(Remainder_S(63 downto 32))) + to_integer(unsigned(Divisor_S)),32));
-            Quotient_S <= Quotient_S(30 downto 0) & "0";
-          else
-            Remainder_S <= Remainder_V;
-            Quotient_S <= Quotient_S(30 downto 0) & "1";
-          end if;
-        elsif is_running = 33 then
-          is_running <= 0;
-          Ready_S <= '1';
-        end if;
-        
-      end if;
+        when others => null;
+      end case;
     end if;
   end process;
 end Behavioral;
