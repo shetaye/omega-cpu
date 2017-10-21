@@ -6,7 +6,7 @@ entity divider_TB is
   
 end divider_TB;
 architecture Behavioral of divider_TB is
-  component divider
+  component divider_sequential
     port (
       Enable    : in  std_logic;
       Ready     : out std_logic;
@@ -18,7 +18,7 @@ architecture Behavioral of divider_TB is
       Quotient  : out std_logic_vector(31 downto 0));
   end component;
   signal CLK_S : std_logic;
-  signal Enable_S : std_logic;
+  signal Enable_S : std_logic := '0';
   signal Ready_S : std_logic;
   signal Overflow_S : std_logic;
   signal Divisor_S : std_logic_vector(31 downto 0);
@@ -28,7 +28,7 @@ architecture Behavioral of divider_TB is
 
   signal Stop : std_logic := '0';
 begin  -- Behavioral
-  uut : divider port map (
+  uut : divider_sequential port map (
     CLK        => CLK_S,
     Enable     => Enable_S,
     Ready      => Ready_S,
@@ -41,7 +41,7 @@ begin  -- Behavioral
     variable dividend_V : integer;
     variable divisor_V : integer;
   begin  -- process
-    for dividend_V in 1 to 4 loop
+    for dividend_V in 1 to 256 loop
       report "Iteration" severity note;
       for divisor_V in 1 to dividend_V loop
         wait until rising_edge(CLK_S);
@@ -51,8 +51,12 @@ begin  -- Behavioral
         wait until Ready_S = '1';
         assert divisor_V /= 0 report "error" severity error;
         assert (divisor_V /= 0 and Overflow_S = '0') or (divisor_V = 0 and Overflow_S = '1') report "Overflow failure" severity error;
-        report "Q "&integer'image(to_integer(unsigned(Quotient_S)));
-        assert Dividend_S = std_logic_vector(unsigned(Quotient_S) * unsigned(Divisor_S) + unsigned(Remainder_S)) report "Incorrect Answer "&integer'image(to_integer(unsigned(Quotient_S))) severity error;
+        assert Dividend_S =
+          std_logic_vector(
+            to_unsigned(
+              to_integer(unsigned(Quotient_S)) *
+              to_integer(unsigned(Divisor_S)) +
+              to_integer(unsigned(Remainder_S)),32)) report "Incorrect Answer "&integer'image(to_integer(unsigned(Dividend_S)))&" / "&integer'image(to_integer(unsigned(Divisor_S)))&" = "&integer'image(to_integer(unsigned(Quotient_S)))&" rem "&integer'image(to_integer(unsigned(Remainder_S))) severity error;
         Enable_S <= '0';
       end loop;  -- divisor
     end loop;  -- dividend
