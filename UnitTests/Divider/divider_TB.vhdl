@@ -3,7 +3,7 @@ use IEEE.std_logic_1164.all;
 use IEEE.Numeric_std.all;
 
 entity divider_TB is
-  
+
 end divider_TB;
 architecture Behavioral of divider_TB is
   component divider_sequential
@@ -27,7 +27,7 @@ architecture Behavioral of divider_TB is
   signal Remainder_S : std_logic_vector(31 downto 0);
   signal Dividend_S : std_logic_vector(31 downto 0);
   signal isSigned_S : std_logic := '1';
-  
+
   signal Stop : std_logic := '0';
 begin  -- Behavioral
   uut : divider_sequential port map (
@@ -44,8 +44,33 @@ begin  -- Behavioral
     variable dividend_V : integer;
     variable divisor_V : integer;
   begin  -- process
+    -- Unsigned
+    isSigned_S <= '0';
     for dividend_V in 1 to 256 loop
-      report "Iteration: Dividend = " & integer'image(dividend_v - 129) severity note;
+      report "Unsigned Iteration: Dividend = " & integer'image(dividend_v) severity note;
+      for divisor_V in 1 to dividend_V loop
+        --report "Iteration: Dividend = " & integer'image(dividend_v - 129) & ", " & "Divisor = " & integer'image(divisor_v - 129) severity note;
+        wait until rising_edge(CLK_S);
+        Dividend_S <= std_logic_vector(to_unsigned(dividend_V,32));
+        Divisor_S <= std_logic_vector(to_unsigned(divisor_V,32));
+        Enable_S <= '1';
+        wait until Ready_S = '1';
+        --assert (divisor_V - 129) /= 0 report "error" severity error;
+        assert ((divisor_V) /= 0 and Overflow_S = '0') or ((divisor_V) = 0 and Overflow_S = '1') report "Overflow failure" severity error;
+        assert Overflow_S = '1' or Dividend_S =
+          std_logic_vector(
+            to_unsigned(
+              to_integer(signed(Quotient_S)) *
+              to_integer(signed(Divisor_S)) +
+              to_integer(signed(Remainder_S)),32)) report "Incorrect Answer "&integer'image(to_integer(signed(Dividend_S)))&" / "&integer'image(to_integer(signed(Divisor_S)))&" = "&integer'image(to_integer(signed(Quotient_S)))&" rem "&integer'image(to_integer(signed(Remainder_S))) severity error;
+        wait for 10 ns;
+        Enable_S <= '0';
+      end loop;  -- divisor
+    end loop;  -- dividend
+    -- Signed
+    isSigned_S <= '1';
+    for dividend_V in 1 to 256 loop
+      report "Signed Iteration: Dividend = " & integer'image(dividend_v - 129) severity note;
       for divisor_V in 1 to dividend_V loop
         --report "Iteration: Dividend = " & integer'image(dividend_v - 129) & ", " & "Divisor = " & integer'image(divisor_v - 129) severity note;
         wait until rising_edge(CLK_S);
@@ -78,6 +103,6 @@ begin  -- Behavioral
       wait;
     end if;
   end process;
-  
+
 
 end Behavioral;
