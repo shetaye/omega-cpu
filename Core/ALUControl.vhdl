@@ -127,7 +127,7 @@ architecture Behavioral of ALUControl is
             when State_Start =>
               Ready_S <= '0';
               if Enable = '1' then
-                if GetOpcode(Instruction_S)=OpcodeArithmetic and GetOperator(Instruction_S)=OperatorDivide then
+                if GetOpcode(Instruction_S)=OpcodeArithmetic and (GetOperator(Instruction_S)=OperatorDivide&"0" or GetOperator(Instruction_S)=OperatorDivide&"1") then
                   state <= State_Divide;
                   Enable_SD <= '1';
                 else
