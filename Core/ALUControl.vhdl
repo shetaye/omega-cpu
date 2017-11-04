@@ -22,6 +22,8 @@ use IEEE.Numeric_std.all;
 entity ALUControl is
 
   port (
+    CLK         : in std_logic;
+    Enable      : in std_logic;
     RegisterB   : in  Word;
     RegisterC   : in  Word;
     Instruction : in  Word;
@@ -31,43 +33,133 @@ entity ALUControl is
     OutputReady : out std_logic;
     Status : out std_logic_vector(1 downto 0));
 
+  type machine_state is (State_Start,State_ALU,State_Divide);
+
 end ALUControl;
 
 architecture Behavioral of ALUControl is
   component ALU is
 
     port (
-      RegisterB_A   : in  Word;
-      RegisterC_A   : in  Word;
-      Instruction_A : in  Word;
-      RegisterA_A   : out Word;
-      RegisterD_A   : out Word;
-      Carry_A       : out std_logic;
-      OutputReady_A : out std_logic;
-      Status_A : out std_logic_vector(1 downto 0));
+      RegisterB   : in  Word;
+      RegisterC   : in  Word;
+      Instruction : in  Word;
+      RegisterA   : out Word;
+      RegisterD   : out Word;
+      Carry       : out std_logic;
+      OutputReady : out std_logic;
+      Status : out std_logic_vector(1 downto 0));
 
   end component ALU;
   component Divider_sequential is
     port (
-      Enable_D    : in  std_logic;
-      Ready_D     : out std_logic;
-      CLK_D       : in  std_logic;
-      Overflow_D  : out std_logic;
-      Divisor_D   : in  std_logic_vector(31 downto 0);
-      Dividend_D  : in  std_logic_vector(31 downto 0);
-      Remainder_D : out std_logic_vector(31 downto 0);
-      Quotient_D  : out std_logic_vector(31 downto 0);
-      IsSigned_D  : in  std_logic);
+      Enable    : in  std_logic;
+      Ready     : out std_logic;
+      CLK       : in  std_logic;
+      Overflow  : out std_logic;
+      Instruction : in  Word;
+      Divisor   : in  Word;
+      Dividend  : in  Word;
+      Remainder : out Word;
+      Quotient  : out Word;
+      IsSigned  : in  std_logic);
 
   end component Divider_sequential;
-  signal RegisterA_S   : Word;
-  signal RegisterB_S   : Word;
-  signal RegisterC_S   : Word;
-  signal RegisterD_S   : Word;
-  signal Enable_S      : std_logic;
-  signal Status_S      : std_logic_vector(1 downto 0);
-  signal Ready_S       : std_logic;
-  signal Carry_S       : std_logic;
-  signal Instruction_S : Word;
+  signal RegisterA_S   : Word := (others => '0');
+  signal RegisterB_S   : Word := (others => '0');
+  signal RegisterC_S   : Word := (others => '0');
+  signal RegisterD_S   : Word := (others => '0');
+  signal Enable_S      : std_logic := '0';
+  signal Status_S      : std_logic_vector(1 downto 0) := "00";
+  signal Ready_S       : std_logic := '0';
+  signal Carry_S       : std_logic := '0';
+  signal Instruction_S : Word := (others => '0');
+  signal state : machine_state := State_Start;
+  signal isSigned_S : std_logic := '0';
+  signal RegisterD_SA : Word := (others => '0');
+  signal RegisterA_SA : Word := (others => '0');
+  signal OutputReady_SA : std_logic := '0';
+  signal RegisterA_SD : Word := (others => '0');
+  signal RegisterD_SD : Word := (others => '0');
+  signal Carry_SD : std_logic := '0';
+  signal OutputReady_SD : std_logic := '0';
+  signal Enable_SD : std_logic := '0';
+  signal Carry_SA : std_logic := '0';
+  signal Status_SA : std_logic_vector(1 downto 0) := "00";
   begin
-end Behavioral
+    alu_i : ALU port map (
+      RegisterB => RegisterB_S,
+      RegisterC => RegisterC_S,
+      RegisterD => RegisterD_SA,
+      RegisterA => RegisterA_SA,
+      Carry => Carry_SA,
+      OutputReady => OutputReady_SA,
+      Status => Status_SA,
+      Instruction => Instruction_S
+      );
+    divider_unit : Divider_sequential port map (
+      CLK => CLK,
+      Dividend => RegisterB_S,
+      Divisor => RegisterC_S,
+      IsSigned => isSigned_S,
+      Quotient => RegisterA_SD,
+      Remainder => RegisterD_SD,
+      Instruction => Instruction_S,
+      Overflow => Carry_SD,
+      Ready => OutputReady_SD,
+      Enable => Enable_SD
+      );
+
+    RegisterD <= RegisterD_S;
+    RegisterA <= RegisterA_S;
+    Carry <= Carry_S;
+    OutputReady <= Ready_S;
+    Status <= Status_S;
+    
+    RegisterB_S <= RegisterB;
+    RegisterC_S <= RegisterC;
+    Instruction_S <= Instruction;
+    isSigned_S <= Instruction(0);
+    control: process(CLK)
+      begin
+        if rising_edge(CLK) then
+          case state is
+            when State_Start =>
+              Ready_S <= '0';
+              if Enable = '1' then
+                if GetOpcode(Instruction_S)=OpcodeArithmetic and GetOperator(Instruction_S)=OperatorDivide then
+                  state <= State_Divide;
+                  Enable_SD <= '1';
+                else
+                  state <= State_ALU;
+                end if;
+              end if;
+            when State_ALU =>
+              if outputReady_SA='1' then
+                Ready_S <= '1';
+                RegisterD_S <= RegisterD_SA;
+                RegisterA_S <= RegisterA_SA;
+                Carry_S <= Carry_SA;
+                Status_S <= Status_SA;
+                state <= State_Start;
+              end if;
+            when State_Divide =>
+              if outputReady_SD='1' then
+                Ready_S <= '1';
+                RegisterD_S <= RegisterD_SD;
+                RegisterA_S <= RegisterA_SD;
+                Enable_SD <= '0';
+                Carry_S <= '0';
+                if Carry_SD = '1' then
+                  Status <= DivideOverflow;
+                else
+                  Status <= NormalAAndD;
+                end if;
+                state <= State_Start;
+              end if;
+            when others => null;
+          end case;
+        end if;
+    end process control;
+    
+end Behavioral;

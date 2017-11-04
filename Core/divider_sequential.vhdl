@@ -1,5 +1,6 @@
 library IEEE;
 use IEEE.std_logic_1164.all;
+use work.Constants.all;
 use IEEE.Numeric_std.all;
 
 
@@ -9,10 +10,11 @@ entity Divider_sequential is
     Ready     : out std_logic;
     CLK       : in  std_logic;
     Overflow  : out std_logic;
-    Divisor   : in  std_logic_vector(31 downto 0);
-    Dividend  : in  std_logic_vector(31 downto 0);
-    Remainder : out std_logic_vector(31 downto 0);
-    Quotient  : out std_logic_vector(31 downto 0);
+    Instruction : in Word;
+    Divisor   : in  Word;
+    Dividend  : in  Word;
+    Remainder : out Word;
+    Quotient  : out Word;
     IsSigned  : in  std_logic);
 
   type machineState is (WaitingToStart,Dividing,Output);
@@ -22,10 +24,10 @@ architecture Behavioral of Divider_sequential is
  signal Enable_S : std_logic := '0';
  signal Ready_S : std_logic := '0';
  signal Overflow_S : std_logic := '0';
- signal Divisor_S : std_logic_vector(31 downto 0) := (others => '0');
- signal Quotient_S : std_logic_vector(31 downto 0) := (others => '0');
+ signal Divisor_S : Word := (others => '0');
+ signal Quotient_S : Word := (others => '0');
  signal Remainder_S : std_logic_vector(63 downto 0) := (others => '0');
- signal Dividend_S : std_logic_vector(31 downto 0) := (others => '0');
+ signal Dividend_S : Word := (others => '0');
  signal is_running : integer := 0;
  signal state : machineState := WaitingToStart;
 begin

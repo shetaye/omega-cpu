@@ -89,6 +89,24 @@ constant OpcodeRelational : opcode := "011";
 constant OpcodeMemory : opcode := "100";
 constant OpcodePort : opcode := "101";
 constant OpcodeBranch : opcode := "110";
+    constant OperatorOr : std_logic_vector(1 downto 0) := "00";
+  constant OperatorAnd : std_logic_vector(1 downto 0) := "01";
+  constant OperatorXor : std_logic_vector(1 downto 0) := "10";
+
+  constant OperatorAdd : std_logic_vector(1 downto 0) := "00";
+  constant OperatorSub : std_logic_vector(1 downto 0) := "01";
+  constant OperatorMultiply : std_logic_vector(1 downto 0) := "10";
+  constant OperatorDivide : std_logic_vector(1 downto 0) := "11";
+
+  constant OperatorShiftRight : std_logic := '0';
+  constant OperatorShiftLeft : std_logic := '1';
+  
+  constant OpSigned : std_logic := '0';
+  constant OpUnsigned : std_logic := '1';
+
+  constant OperatorEqual : std_logic := '0';
+  constant OperatorLessThan : std_logic := '1';
+
 constant RegisterMode : std_logic := '0';
 constant ImmediateMode : std_logic := '1';
 constant LoadByteUnsigned : Operator := "000";
