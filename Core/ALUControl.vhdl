@@ -117,21 +117,33 @@ architecture Behavioral of ALUControl is
     Status <= Status_S;
     
     RegisterB_S <= RegisterB;
-    RegisterC_S <= RegisterC;
+    
     Instruction_S <= Instruction;
-    isSigned_S <= Instruction(0);
+    isSigned_S <= not Instruction(0);
     control: process(CLK)
+      variable SignExtendedImmediate : std_logic_vector(31 downto 0);
+      variable Operator_V : std_logic_vector(2 downto 0) := "000";
       begin
         if rising_edge(CLK) then
+          Operator_V := GetOperator(Instruction_S);
+          SignExtendedImmediate := std_logic_vector(resize(signed(GetImmediateValue(Instruction_S)), 32));
           case state is
             when State_Start =>
               Ready_S <= '0';
               if Enable = '1' then
-                if GetOpcode(Instruction_S)=OpcodeArithmetic and (GetOperator(Instruction_S)=OperatorDivide&"0" or GetOperator(Instruction_S)=OperatorDivide&"1") then
-                  state <= State_Divide;
-                  Enable_SD <= '1';
+                if GetOpcode(Instruction_S)= OpcodeArithmetic and (Operator_V(2 downto 1) = OperatorDivide) then
+                  if Operator_V(0)=RegisterMode then
+                    RegisterC_S <= RegisterC;
+                    state <= State_Divide;
+                    Enable_SD <= '1';
+                  elsif Operator_V(0)=ImmediateMode then
+                    RegisterC_S <= SignExtendedImmediate;
+                    state <= State_Divide;
+                    Enable_SD <= '1';
+                  end if;
                 else
                   state <= State_ALU;
+                  RegisterC_S <= RegisterC;
                 end if;
               end if;
             when State_ALU =>
