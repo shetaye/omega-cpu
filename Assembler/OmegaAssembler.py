@@ -30,6 +30,7 @@ OPCODES = { "AND" : (0,2),
           "MULT" : (1,4),
           "MULTI" : (1,5),
           "DIV" : (1,6),
+          "DIVU" : (1,6),
           "DIVI" : (1,7),
           "SRLV" : (2,2),
           "SRL" : (2,3),
@@ -82,6 +83,7 @@ FORMS = { "AND" : 1,
           "MULT" : 3,
           "MULTI" : 2,
           "DIV" : 3,
+          "DIVU" : 3,
           "DIVI" : 2,
           "SRLV" : 1,
           "SRL" : 2,
@@ -186,7 +188,7 @@ class MachineData(object):
         visitor.visitMachineData(self, parameters)
 
 class MachineWord(object):
-    def __init__(self,address = 0, opcode = 0,operator = 0,registerA = 0, registerB = 0, registerC = 0, registerD = 0, port = 0, immediateValue = 0, immediateAddressConditional = 0, immediateAddress = 0):
+    def __init__(self,address = 0, opcode = 0,operator = 0,registerA = 0, registerB = 0, registerC = 0, registerD = 0, port = 0, immediateValue = 0, immediateAddressConditional = 0, immediateAddress = 0, signedBit = 0):
         self.address = address
         self.opcode = opcode
         self.operator = operator
@@ -198,6 +200,7 @@ class MachineWord(object):
         self.immediateValue = immediateValue
         self.immediateAddressConditional = immediateAddressConditional
         self.immediateAddress = immediateAddress
+        self.signedBit = signedBit
 
     def acceptVisitor(self, visitor, parameters = []):
         visitor.visitMachineWord(self, parameters)
@@ -214,6 +217,7 @@ class MachineWord(object):
         number = number | (self.immediateValue & 0xFFFF)
         number = number | ((self.immediateAddressConditional >> 2) & 0x1FFFFF)
         number = number | ((self.immediateAddress >> 2) & 0x3FFFFFF)
+        number = number | (self.signedBit & 1)
         return number
          
 
@@ -373,7 +377,7 @@ class MachineObjectBuilder(object):
     def visitFourRegisterMachineInstruction(self, ref, parameters = []):
         #Visit Four Register Machine Instruction
         (opcode,operator) = OPCODES[ref.opcode]
-        self.machineCode[self.instructionAddresses[ref]] = MachineWord(address = self.instructionAddresses[ref], opcode = opcode, operator = operator, registerA = ref.registerA.acceptVisitor(self), registerB = ref.registerB.acceptVisitor(self), registerC = ref.registerC.acceptVisitor(self), registerD = ref.registerD.acceptVisitor(self))
+        self.machineCode[self.instructionAddresses[ref]] = MachineWord(address = self.instructionAddresses[ref], opcode = opcode, operator = operator, registerA = ref.registerA.acceptVisitor(self), registerB = ref.registerB.acceptVisitor(self), registerC = ref.registerC.acceptVisitor(self), registerD = ref.registerD.acceptVisitor(self), signedBit = 1 if ref.opcode == "DIVU" else 0)
     def visitTwoRegisterMachineInstruction(self, ref, parameters = []):
         #Visit Two Register Machine Instruction
         (opcode,operator) = OPCODES[ref.opcode]
