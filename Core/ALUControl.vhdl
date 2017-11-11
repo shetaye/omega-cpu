@@ -51,7 +51,7 @@ architecture Behavioral of ALUControl is
       Status : out std_logic_vector(1 downto 0));
 
   end component ALU;
-  component Divider_sequential is
+  component DividerSequential is
     port (
       Enable    : in  std_logic;
       Ready     : out std_logic;
@@ -64,7 +64,7 @@ architecture Behavioral of ALUControl is
       Quotient  : out Word;
       IsSigned  : in  std_logic);
 
-  end component Divider_sequential;
+  end component DividerSequential;
   signal RegisterA_S   : Word := (others => '0');
   signal RegisterB_S   : Word := (others => '0');
   signal RegisterC_S   : Word := (others => '0');
@@ -97,7 +97,7 @@ architecture Behavioral of ALUControl is
       Status => Status_SA,
       Instruction => Instruction_S
       );
-    divider_unit : Divider_sequential port map (
+    divider_unit : DividerSequential port map (
       CLK => CLK,
       Dividend => RegisterB_S,
       Divisor => RegisterC_S,
@@ -163,9 +163,9 @@ architecture Behavioral of ALUControl is
                 Enable_SD <= '0';
                 Carry_S <= '0';
                 if Carry_SD = '1' then
-                  Status <= DivideOverflow;
+                  Status_S <= DivideOverflow;
                 else
-                  Status <= NormalAAndD;
+                  Status_S <= NormalAAndD;
                 end if;
                 state <= State_Start;
               end if;

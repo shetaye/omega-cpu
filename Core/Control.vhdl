@@ -48,9 +48,11 @@ end Control;
 architecture Behavioral of Control is
   
 
-  component ALU is
+  component ALUControl is
     
     port (
+		CLK         : in std_logic;
+		Enable      : in std_logic;
       RegisterB   : in  Word;
       RegisterC   : in  Word;
       Instruction : in  Word;
@@ -60,7 +62,7 @@ architecture Behavioral of Control is
       OutputReady : out std_logic;
       Status : out std_logic_vector(1 downto 0));
 
-  end component ALU;
+  end component ALUControl;
 
   component BranchUnit is
 
@@ -100,6 +102,7 @@ architecture Behavioral of Control is
   signal RegBOut : Word;
   signal RegCOut : Word;
   signal RegDOut : Word;
+  signal ALUEnable_S : std_logic := '0';
   signal ALUStatus : std_logic_vector(1 downto 0);
   signal Instr_S : Word := (others => '0');
   signal ALUOutputReady : std_logic;
@@ -121,7 +124,9 @@ architecture Behavioral of Control is
 
 begin  -- Behavioral
 
-  ALUControl : ALU port map (
+  ALUControl_I : ALUControl port map (
+	 CLK => CLK,
+	 Enable => ALUEnable_S,
     RegisterB => RegB,
     RegisterA => RegAOut,
     RegisterC => RegC,
@@ -311,6 +316,7 @@ begin  -- Behavioral
           
         when ALUSetInstrIn =>
           if ALUOutputReady = '1' then
+				ALUEnable_S <= '0';
             case ALUStatus is
               when NormalAOnly =>
                 ReadValue := to_integer(unsigned(GetRegisterReferenceA(Instr_S)));
@@ -335,9 +341,11 @@ begin  -- Behavioral
                 -- Fill In!
               when others => null;
             end case;
-          end if;
           State <= Start;
           MemControllerEnable_S <= '0';
+	      else
+			   ALUEnable_S <= '1';
+			 end if;
         when others => null;
       end case;
     end if;

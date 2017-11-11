@@ -4,7 +4,7 @@ use work.Constants.all;
 use IEEE.Numeric_std.all;
 
 
-entity Divider_sequential is
+entity DividerSequential is
   port (
     Enable    : in  std_logic;
     Ready     : out std_logic;
@@ -19,8 +19,8 @@ entity Divider_sequential is
 
   type machineState is (WaitingToStart,Dividing,Output);
   
-end Divider_sequential;
-architecture Behavioral of Divider_sequential is
+end DividerSequential;
+architecture Behavioral of DividerSequential is
  signal Enable_S : std_logic := '0';
  signal Ready_S : std_logic := '0';
  signal Overflow_S : std_logic := '0';
