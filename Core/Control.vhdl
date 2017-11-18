@@ -170,12 +170,12 @@ begin  -- Behavioral
     
   end process;
 
-  --process (IRQ)
-  --   begin  -- process
-
-  --     IRQ_S <= IRQ_S or IRQ;
-       
-  --   end process;   
+  process (CLK)
+     begin  -- process
+		 if rising_edge(CLK) then
+		   IRQ_S <= IRQ_S or IRQ;
+		 end if;
+  end process;   
 
   StateMachine: process (CLK, RST)
     variable ReadValue : integer := 0;
@@ -200,6 +200,9 @@ begin  -- Behavioral
               MemControllerADDR_S <= std_logic_vector(unsigned(InterruptTableADDR) + (NextInterrupt * 4));
               State <= ServiceInterrupt;
               ServicingInterrupt <= '1';              
+            else
+              MemControllerADDR_S <= registers(31);
+              State <= WaitForInstrRead;
             end if;
           else
             MemControllerADDR_S <= registers(31);
