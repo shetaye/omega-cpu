@@ -173,7 +173,7 @@ begin  -- Behavioral
   process (CLK)
      begin  -- process
 		 if rising_edge(CLK) then
-		   IRQ_S <= IRQ_S or IRQ;
+		   --IRQ_S <= "000000000000000000000000";
 		 end if;
   end process;   
 
@@ -191,6 +191,7 @@ begin  -- Behavioral
       State <= Start;
       MemControllerEnable_S <= '0';
     elsif rising_edge(CLK) then
+	   IRQ_S <= IRQ_S or IRQ;
       case State is
         when Start =>
           if ServicingInterrupt = '0' and IRQ_S /= "000000000000000000000000" then
