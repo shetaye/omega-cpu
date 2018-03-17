@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdbool.h>
+
 int state = 1;
 char buffer;
 int stack[5000];
@@ -76,59 +78,82 @@ void push(int* a){
   *sp = a[0];
   sp -= 1;
   *sp = a[1];
+  printf("Pushed values %d : %d onto stack", a[0], a[1]);
 }
 void pop(int* a){
   a[1] = *sp;
   sp += 1;
   a[0] = *sp;
   sp += 1;
+  printf("Popped values %d : %d off the stack", a[0], a[1]);
 }
 
 int main(){
   buffer = getchar();
   int token[2];
   int pState = 0;
-  int element[2] = {1,0};
-  bool shift;
+  int element[2] = {0,0};
   push(element);
   nextToken(token);
+  bool accepted = false;
   do {
     int tType = token[0];
     int tVal = token[1];
     int sState = sp[1];
+    int a[2];
     switch(sState){
+    /* Shifts */
     case 0: //+
-      switch(tType){
-      case 1:
-	int a[2];
-	a[0] = 1;
-	a[1] = val;
-	push(a);
-	break;
-      case :
-      }
-    case 1: //-
     case 2: //+
-    case 3: //- 
     case 4: //+
-    case 5: //+
+    case 5: //+ 
     case 6: //+
-    case 7: //-
+	if(tType == '-'){ // Handle subtraction from rule 5
+		a[0] = 10;
+		a[1] = tVal;
+		push(a)
+		nextToken(token);
+		break;
+	}
     case 8: //+
-    case 9: // ACCEPT
     case 10: //+
     case 11: //+
     case 12: //+
     case 13: //+
+	switch(tType){ // Determine what state we are shifting to
+		case 1: // state = 1
+			a[0] = 1;
+		break;
+		case '-': // state = 2
+			a[0] = 2;
+		break;
+		case '(': // state = 4
+			a[0] = 4; 
+		break;
+	}
+	a[1] = tVal;
+	push(a);
+	nextToken(token);
+    break;
+    /* Reductions */
+    case 1: //-
+	//Rule 3 - number, 1 right-hand
+	int b[2];
+	pop(b);
+    break;
+    case 7: //-
+    	//Rule 
+    case 3: //- 
+	//Unused due to the abscence of \n
     case 14: //-
     case 15: //-
-    case 16: //+-
-    case 17: //+-
     case 18: //-
     case 19: //-
+    case 16: //+-
+    case 17: //+-
+    case 9: // ACCEPT
+    break;
     }
-  } while (pState != 5)
+  } while (!accepted);
   printf("%d",sp[1]);
-  
-  
 }
