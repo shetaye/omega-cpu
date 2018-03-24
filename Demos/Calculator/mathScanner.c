@@ -298,6 +298,7 @@ int main(){
       sp += 2;
       b[0] = gotoLookup[sp[1]];
       push(b);
+      break;
     case 18: //-
       pop(a);
       sp += 2;
@@ -305,15 +306,25 @@ int main(){
       b[1] = a[1] * b[1];
       b[0] = gotoLookup[sp[1]];
       push(b);
+      break;
     case 19: //-
       pop(a);
       sp += 2;
       pop(b);
+      if(a[1] == 0) {
+	printf("Divide by zero\n");
+	sp = sp_original;
+	element[0] = 0;
+	element[1] = 0;
+	push(element);
+	continue;
+      }
       b[1] = b[1] / a[1];
       b[0] = gotoLookup[sp[1]];
       push(b);
+      break;
     case 16: //+-
-     if(tType == TOKEN_MULT | tType == TOKEN_DIV){
+     if(tType == TOKEN_MULT || tType == TOKEN_DIV){
       switch(tType){
       case TOKEN_MULT:
 	a[0] = 12;
@@ -341,7 +352,7 @@ int main(){
      }
     break;
     case 17: //+-
-     if(tType == TOKEN_MULT | tType == TOKEN_DIV){
+     if(tType == TOKEN_MULT || tType == TOKEN_DIV){
       switch(tType){
       case TOKEN_MULT:
 	a[0] = 12;
