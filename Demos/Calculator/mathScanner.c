@@ -2,7 +2,8 @@
 #include <stdbool.h>
 
 int state = 1;
-//char buffer;
+char buffer;
+//char prevcharacter;
 int stack[5000];
 int* sp = &stack[4999];
 
@@ -21,12 +22,11 @@ typedef enum {
 void nextToken(int* p){
   char prevcharacter;
   int number;
-  char buffer = getchar();
-  do {
-    //printf("%c\n",buffer);
-    switch(state){
-    case 1:
-      if(buffer == '0'){
+  printf("nextToken buff: %c state: %d \n",buffer,state);
+  do{
+  switch(state){
+  case 1:
+    if(buffer == '0'){
 	state = 3;
 	number = 0;
 	prevcharacter = buffer;
@@ -46,13 +46,18 @@ void nextToken(int* p){
       }else if(buffer == ' ' || buffer == '\t'){
 	state = 1;
 	break;
+      }else if(buffer == '\n' || buffer == EOF){
+	printf("Newline");
+	p[0] = TOKEN_EOL;
+	return;
       }else{
 	printf("Syntax error\n");
 	p[0] = TOKEN_ERROR;
 	return;
       }
-    case 2:
+  case 2:
       if(buffer >= '0' && buffer <= '9'){
+	printf("Added number %c\n", buffer);
 	number = number*10 + (buffer - '0');
 	prevcharacter = buffer;
 	buffer = getchar();
@@ -65,15 +70,15 @@ void nextToken(int* p){
 	return;
 	break;
       }
-    case 3:
-      state = 1;
-      printf("Matched number (0)\n");
-      p[0] = TOKEN_NUMBER;
-      p[1] = 0;
-      return;
-      break;
-    case 4:
-      state = 1;
+  case 3:
+    state = 1;
+    printf("Matched number (0)\n");
+    p[0] = TOKEN_NUMBER;
+    p[1] = 0;
+    return;
+    break;
+  case 4:
+    state = 1;
       printf("Matched operator %c\n", prevcharacter);
       switch(prevcharacter){
       case '+':
@@ -88,15 +93,21 @@ void nextToken(int* p){
       case '*':
 	p[0] = TOKEN_MULT;
 	  break;
+      case '(':
+	p[0] = TOKEN_LEFTP;
+	break;
+      case ')':
+	p[0] = TOKEN_RIGHTP;
+	break;
       }
       p[1] = 0;
       return;
       break;
-    case 0:
+  case 0:
       break;
-    }
-  } while((buffer != EOF && buffer != '\n') || state != 1);
-  p[0] = TOKEN_EOL;
+  }
+  }while(state != 1);
+  return;
 }
 void push(int* a){
   sp -= 1;
@@ -114,14 +125,15 @@ void pop(int* a){
 }
 
 int main(){
-  //buffer = getchar();
+  buffer = getchar();
   const int gotoLookup[20] = {6,-1,7,-1,8,-1,-1,-1,-1,-1,16,17,18,19,-1,
 			      -1,-1,-1,-1,-1};
   int token[2];
-  int *sp_original = sp;
+  int* sp_original = sp;
   int pState = 0;
   int element[2] = {0,0};
-  int a[2], b[2];
+  int a[2] = {0,0};
+  int b[2] = {0,0};
   push(element);
   nextToken(token);
   bool accepted = false;
@@ -129,6 +141,7 @@ int main(){
     int tType = token[0];
     int tVal = token[1];
     int sState = sp[1];
+    printf("Parse loop, state: %d \n",sState);
     switch(sState){
     /* Shifts */
     case 0: //+
@@ -184,11 +197,13 @@ int main(){
       }
       push(a);
       nextToken(token);
+    break;
     case 3: //+
       sp = sp_original;
       element[0] = 0;
       element[1] = 0;
       push(element);
+      accepted = true; //Temporary
       break;
     case 6: //+
       switch(tType){
@@ -217,6 +232,7 @@ int main(){
       }
       push(a);
       nextToken(token);
+    break;
     case 8:
       switch(tType){
       case TOKEN_MINUS:
@@ -231,7 +247,7 @@ int main(){
       case TOKEN_DIV:
 	a[0] = 13;
 	break;
-      case TOKEN_LEFTP:
+      case TOKEN_RIGHTP:
 	a[0] = 15;
 	break;
       default:
@@ -286,17 +302,18 @@ int main(){
       pop(a);
       sp += 2;
       pop(b);
-      a[1] = a[1] * b[1];
+      b[1] = a[1] * b[1];
       b[0] = gotoLookup[sp[1]];
       push(b);
     case 19: //-
       pop(a);
       sp += 2;
       pop(b);
-      a[1] = a[1] / b[1];
+      b[1] = b[1] / a[1];
       b[0] = gotoLookup[sp[1]];
       push(b);
     case 16: //+-
+     if(tType == TOKEN_MULT | tType == TOKEN_DIV){
       switch(tType){
       case TOKEN_MULT:
 	a[0] = 12;
@@ -314,7 +331,17 @@ int main(){
       }
       push(a);
       nextToken(token);
+     }else{ /* Reduce */
+	pop(a);
+	sp += 2;
+	pop(b);
+	b[1] = b[1] - a[1];
+	b[0] = gotoLookup[sp[1]];
+	push(b);
+     }
+    break;
     case 17: //+-
+     if(tType == TOKEN_MULT | tType == TOKEN_DIV){
       switch(tType){
       case TOKEN_MULT:
 	a[0] = 12;
@@ -332,6 +359,14 @@ int main(){
       }
       push(a);
       nextToken(token);
+     }else{ /* Reduce */
+	pop(a);
+	sp += 2;
+	pop(b);
+	b[1] = a[1] + b[1];
+	b[0] = gotoLookup[sp[1]];
+	push(b);
+     }
     break;
     }
   } while (!accepted);
