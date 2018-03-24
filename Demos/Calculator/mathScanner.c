@@ -159,11 +159,14 @@ void pop(int* a){
 #endif
 }
 void read_in_error(){
-  printf("Syntax error -- press Enter to continue\n");
+  printf("Syntax error\n");
   buffer_is_empty = 1;
   while(getchar() != '\n');
 }
 void reset_stack(){
+#ifdef DEBUG
+  printf("Reset stack\n");
+#endif
   sp = sp_original;
   sp -= 1;
   *sp = 0;
@@ -203,15 +206,18 @@ int main(){
       case TOKEN_NUMBER:
 	a[0] = 1;
 	a[1] = tVal;
+	token_is_empty = 1;
 	break;
       case TOKEN_MINUS:
 	a[0] = 2;
+	token_is_empty = 1;
 	break;
       case TOKEN_EOL:
 	a[0] = 3;
 	break;
       case TOKEN_LEFTP:
 	a[0] = 4;
+	token_is_empty = 1;
 	break;
       default:
 #ifdef DEBUG
@@ -223,8 +229,7 @@ int main(){
 	continue;
       }
       push(a);
-      token_is_empty = 1;
-    break;
+      break;
     case 2: //+
     case 4: //+
     case 10: //+
