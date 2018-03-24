@@ -1,11 +1,15 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+//#define DEBUG
+
 int state = 1;
+int buffer_is_empty = 1;
 char buffer;
 //char prevcharacter;
 int stack[5000];
 int* sp = &stack[4999];
+int* sp_original;
 
 typedef enum {
   TOKEN_NUMBER,
@@ -20,9 +24,15 @@ typedef enum {
 } TOKENS;
 
 void nextToken(int* p){
+  if(buffer_is_empty){
+    buffer = getchar();
+    buffer_is_empty = 0;
+  }
   char prevcharacter;
   int number;
+#ifdef DEBUG
   printf("nextToken buff: %c state: %d \n",buffer,state);
+#endif
   do{
   switch(state){
   case 1:
@@ -45,26 +55,43 @@ void nextToken(int* p){
 	break;
       }else if(buffer == ' ' || buffer == '\t'){
 	state = 1;
+	buffer = getchar();
 	break;
-      }else if(buffer == '\n' || buffer == EOF){
-	printf("Newline");
+      }else if(buffer == '\n'){
+#ifdef DEBUG
+	printf("Newline\n");
+#endif
+	buffer_is_empty = 1;
+	p[0] = TOKEN_EOL;
+	return;
+      }else if(buffer == EOF){
+#ifdef DEBUG
+	printf("EOF\n");
+#endif
 	p[0] = TOKEN_EOL;
 	return;
       }else{
-	printf("Syntax error\n");
+#ifdef DEBUG
+	printf("Error token\n");
+#endif
+	buffer_is_empty = 1;
 	p[0] = TOKEN_ERROR;
 	return;
       }
   case 2:
       if(buffer >= '0' && buffer <= '9'){
+#ifdef DEBUG
 	printf("Added number %c\n", buffer);
+#endif
 	number = number*10 + (buffer - '0');
 	prevcharacter = buffer;
 	buffer = getchar();
 	break;
       }else{
 	state = 1;
+#ifdef DEBUG
 	printf("Matched number %d\n", number);
+#endif
 	p[0] = TOKEN_NUMBER;
 	p[1] = number;
 	return;
@@ -72,14 +99,18 @@ void nextToken(int* p){
       }
   case 3:
     state = 1;
+#ifdef DEBUG
     printf("Matched number (0)\n");
+#endif
     p[0] = TOKEN_NUMBER;
     p[1] = 0;
     return;
     break;
   case 4:
     state = 1;
+#ifdef DEBUG
       printf("Matched operator %c\n", prevcharacter);
+#endif
       switch(prevcharacter){
       case '+':
 	p[0] = TOKEN_PLUS;
@@ -114,34 +145,57 @@ void push(int* a){
   *sp = a[0];
   sp -= 1;
   *sp = a[1];
+#ifdef DEBUG
   printf("Pushed values %d : %d onto stack\n", a[0], a[1]);
+#endif
 }
 void pop(int* a){
   a[1] = *sp;
   sp += 1;
   a[0] = *sp;
   sp += 1;
+#ifdef DEBUG
   printf("Popped values %d : %d off the stack\n", a[0], a[1]);
+#endif
+}
+void read_in_error(){
+  printf("Syntax error -- press Enter to continue\n");
+  buffer_is_empty = 1;
+  while(getchar() != '\n');
+}
+void reset_stack(){
+  sp = sp_original;
+  sp -= 1;
+  *sp = 0;
+  sp -= 1;
+  *sp = 0;
+  printf("> ");
+  fflush(stdout);
 }
 
 int main(){
-  buffer = getchar();
   const int gotoLookup[20] = {6,-1,7,-1,8,-1,-1,-1,-1,-1,16,17,18,19,-1,
 			      -1,-1,-1,-1,-1};
+  int token_is_empty = 1;
   int token[2];
-  int* sp_original = sp;
+  sp_original = sp;
   int pState = 0;
   int element[2] = {0,0};
   int a[2] = {0,0};
   int b[2] = {0,0};
-  push(element);
-  nextToken(token);
+  reset_stack();
   bool accepted = false;
   do {
+    if(token_is_empty){
+      nextToken(token);
+      token_is_empty = 0;
+    }
     int tType = token[0];
     int tVal = token[1];
     int sState = sp[1];
+#ifdef DEBUG
     printf("Parse loop, state: %d \n",sState);
+#endif
     switch(sState){
     /* Shifts */
     case 0: //+
@@ -160,15 +214,16 @@ int main(){
 	a[0] = 4;
 	break;
       default:
+#ifdef DEBUG
 	printf("Error with token %d\n",tType);
-	sp = sp_original;
-	element[0] = 0;
-	element[1] = 0;
-	push(element);
+#endif
+	read_in_error();
+	reset_stack();
+	token_is_empty = 1;
 	continue;
       }
       push(a);
-      nextToken(token);
+      token_is_empty = 1;
     break;
     case 2: //+
     case 4: //+
@@ -188,23 +243,24 @@ int main(){
 	a[0] = 4; 
 	break;
       default:
+#ifdef DEBUG
 	printf("Error with token %d\n",tType);
-	sp = sp_original;
-	element[0] = 0;
-	element[1] = 0;
-	push(element);
+#endif
+	read_in_error();
+	reset_stack();
+	token_is_empty = 1;
 	continue;
       }
       push(a);
-      nextToken(token);
+      token_is_empty = 1;
     break;
     case 3: //+
-      sp = sp_original;
-      element[0] = 0;
-      element[1] = 0;
-      push(element);
-      accepted = true; //Temporary
-      break;
+      reset_stack();
+      token_is_empty = 1;
+      if(buffer == EOF) {
+	accepted = true; //Temporary
+      }
+      continue;
     case 6: //+
       switch(tType){
       case TOKEN_MINUS:
@@ -220,18 +276,22 @@ int main(){
 	a[0] = 13;
 	break;
       case TOKEN_EOL:
-	a[0] = 14;
-	break;
+	pop(b);
+       	printf("%d\n",b[1]);
+	reset_stack();
+	token_is_empty = 1;
+	continue;
       default:
+#ifdef DEBUG
 	printf("Error with token %d\n",tType);
-	sp = sp_original;
-	element[0] = 0;
-	element[1] = 0;
-	push(element);
+#endif
+	read_in_error();
+	reset_stack();
+	token_is_empty = 1;
 	continue;
       }
       push(a);
-      nextToken(token);
+      token_is_empty = 1;
     break;
     case 8:
       switch(tType){
@@ -251,15 +311,16 @@ int main(){
 	a[0] = 15;
 	break;
       default:
+#ifdef DEBUG
 	printf("Error with token %d\n",tType);
-	sp = sp_original;
-	element[0] = 0;
-	element[1] = 0;
-	push(element);
+#endif
+	read_in_error();
+	reset_stack();
+	token_is_empty = 1;
 	continue;
       }
       push(a);
-      nextToken(token);
+      token_is_empty = 1;
     break;
     /* Reductions */
     case 1: //-
@@ -276,22 +337,15 @@ int main(){
       push(b);
       break;
     case 5: //-
+    case 14:
     case 9: // ACCEPT
+#ifdef DEBUG
       printf("Error with token %d\n",tType);
-      sp = sp_original;
-      element[0] = 0;
-      element[1] = 0;
-      push(element);
+#endif
+      read_in_error();
+      reset_stack();
+      token_is_empty = 1;
       continue;      
-    case 14: //-
-      sp += 2;
-      pop(b);
-      element[0] = 0;
-      element[1] = 0;
-      push(element);
-      printf("%d\n",b[1]);
-      sp = sp_original;
-      continue;
     case 15: //-
       sp += 2;
       pop(b);
@@ -313,10 +367,9 @@ int main(){
       pop(b);
       if(a[1] == 0) {
 	printf("Divide by zero\n");
-	sp = sp_original;
-	element[0] = 0;
-	element[1] = 0;
-	push(element);
+	read_in_error();
+	reset_stack();
+	token_is_empty = 1;
 	continue;
       }
       b[1] = b[1] / a[1];
@@ -333,15 +386,16 @@ int main(){
 	a[0] = 13;
 	break;
       default:
+#ifdef DEBUG
 	printf("Error with token %d\n",tType);
-	sp = sp_original;
-	element[0] = 0;
-	element[1] = 0;
-	push(element);
+#endif
+	read_in_error();
+        reset_stack();
+	token_is_empty = 1;
 	continue;
       }
       push(a);
-      nextToken(token);
+      token_is_empty = 1;
      }else{ /* Reduce */
 	pop(a);
 	sp += 2;
@@ -361,15 +415,16 @@ int main(){
 	a[0] = 13;
 	break;
       default:
+#ifdef DEBUG
 	printf("Error with token %d\n",tType);
-	sp = sp_original;
-	element[0] = 0;
-	element[1] = 0;
-	push(element);
+#endif
+	read_in_error();
+	reset_stack();
+	token_is_empty = 1;
 	continue;
       }
       push(a);
-      nextToken(token);
+      token_is_empty = 1;
      }else{ /* Reduce */
 	pop(a);
 	sp += 2;
@@ -381,5 +436,5 @@ int main(){
     break;
     }
   } while (!accepted);
-  printf("%d\n",sp[1]);
+  //printf("%d\n",sp[1]);
 }
