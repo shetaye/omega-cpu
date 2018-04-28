@@ -112,15 +112,66 @@ nextToken_else3:
 	EQI $r11,9
 	OR $r10,$r10,$r11
 	BZ nextToken_else4
-	
+#; state = 1;
+	LA $r10,state
+	ADDI $r11,$r0,1
+	SW $r10,$r11
+#; buffer = getchar();
+	LA $r10,buffer
+	INPB $r11,$p1
+	SW $r10,$r11
+#; break;
+	J nextToken_switchFinished
 nextToken_else4:
 	EQ $r9, 10
 	BZ nextToken_else5
-	
+#; buffer_is_empty = 1;
+	LA $r10,buffer_is_empty
+	ADDI $r11,$r0,1
+	SW $r10,$r11
+#; p[0] = TOKEN_EOL;
+	ADDI $r10,$r0,8
+	SW $r4,$r10
+#; return;
+	ret
 nextToken_else5:
-#; No EOF
+#; no EOF, return;
+	ret
+#; Error:
+#; buffer_is_empty = 1;
+	LA $r10,buffer_is_empty
+	ADDI $r11,$r0,1
+	SW $r10,$r11
+#; p[0] = TOKEN_ERROR;
+	ADDI $r10,$r0,7
+	SW $r4,$r10
+#; return;
 	ret
 nextToken_case2:
+	LA $r9,buffer
+	LW $r9,$r9
+	ADD $r10,$r0,$r9
+	ADD $r11,$r0,$r9
+	LTI $r10,48
+	GTI $r11,57
+	OR $r10,$r10,$r11
+	BNZ nextToken_else6
+#; number = number * 10 + (buffer - '0');
+#; number * 10
+	LA $r10,number
+	LW $r11,$r10
+	MULI $r11,$r11,10
+	SW $r10,$r11
+#; (buffer - '0')
+	LA $r10,buffer
+	LW $r10,$r10
+	SUBI $r10,$r10,48
+#; number = ... + (...);
+	LA $r11,number
+	LW $r12,$r11
+	ADD $r10,$r10,$r12
+	SW $r11,$r10	
+nextToken_else6:	
 	J nextToken_switchFinished
 nextToken_case3:
 	J nextToken_switchFinished
