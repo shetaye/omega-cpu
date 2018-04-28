@@ -4,6 +4,42 @@ buffer_is_empty:	.byte 0,0,0,0
 buffer:	 .byte 0,0,0,0
 prevcharacter:	 .byte 0,0,0,0
 number:	 .byte 0,0,0,0
+gotoLookup:
+	.byte 6,0,0,0
+	.byte -1,0,0,0
+	.byte 7,0,0,0
+	.byte -1,0,0,0
+	.byte 8,0,0,0
+	.byte -1,0,0,0
+	.byte -1,0,0,0
+	.byte -1,0,0,0
+	.byte -1,0,0,0
+	.byte -1,0,0,0
+	.byte 16,0,0,0
+	.byte 17,0,0,0
+	.byte 18,0,0,0
+	.byte 19,0,0,0
+	.byte -1,0,0,0
+	.byte -1,0,0,0
+	.byte -1,0,0,0
+	.byte -1,0,0,0
+	.byte -1,0,0,0
+	.byte -1,0,0,0
+token_is_empty:	.byte 0,0,0,0
+token:
+	.byte 0,0,0,0
+	.byte 0,0,0,0
+pState:	.byte 0,0,0,0
+element:
+	.byte 0,0,0,0
+	.byte 0,0,0,0
+a:
+	.byte 0,0,0,0
+	.byte 0,0,0,0
+b:
+	.byte 0,0,0,0
+	.byte 0,0,0,0
+accepted:	.byte 0,0,0,0
 .text
 
 #; TODO: Insert nextToken
@@ -129,10 +165,10 @@ nextToken_else4:
 	ADDI $r10,$r0,8
 	SW $r4,$r10
 #; return;
-	ret
+	RET
 nextToken_else5:
 #; no EOF, return;
-	ret
+	RET
 #; Error:
 #; buffer_is_empty = 1;
 	LA $r10,buffer_is_empty
@@ -142,7 +178,7 @@ nextToken_else5:
 	ADDI $r10,$r0,7
 	SW $r4,$r10
 #; return;
-	ret
+	RET
 nextToken_case2:
 	LA $r9,buffer
 	LW $r9,$r9
@@ -154,7 +190,7 @@ nextToken_case2:
 #; number * 10
 	LA $r10,number
 	LW $r11,$r10
-	MULI $r11,$r11,10
+	MULTI $r11,$r11,10
 	SW $r10,$r11
 #; (buffer - '0')
 	LA $r10,buffer
@@ -186,7 +222,7 @@ nextToken_else6:
 	ADDI $r11,$r4,4
 	SW $r11,$r10
 #; return;
-	ret
+	RET
 #; break; (Why? we just returned!)
 	J nextToken_switchFinished
 nextToken_case3:
@@ -200,7 +236,7 @@ nextToken_case3:
 #; p[1] = 0;
 	SW $r4,$r0
 #; return;
-	ret
+	RET
 #; break;
 	J nextToken_switchFinished
 nextToken_case4:
@@ -267,7 +303,7 @@ nextToken_switch2Finished:
 	ADDI $r10,$r4,4
 	SW $r10,$r0
 #; return;
-	ret
+	RET
 #; break;
 	J nextToken_switchFinished
 nextToken_switchFinished:
@@ -276,11 +312,39 @@ nextToken_switchFinished:
 	EQI $r8,$r8,1
 	BZI $r8,nextToken_doWhile_stateNot1
 #; TODO: Insert reset_stack
-#; TODO: Insert push
-#; TODO: Insert pop
-
+push:
+	SUBI $r29,$r29,4
+	SW $r29,$r4
+	SUBI $r29,$r29,4
+	SW $r29,$r5
+pop:
+	LW $r8,$r29
+	SW $r8,$r4
+	ADDI $r29,$r29,4
+	LW $r8,$r29
+	SW $r8,$r5
+	ADDI $r29,$r29,4
+#; TODO: Insert read_in_error
 main:
+#; Initialize state
+	LA $r8,state
+	ADDI $r9,$r0,1
+	SW $r8,$r9
+#; Initialize buffer_is_empty
+	LA $r8,buffer_is_empty
+	ADDI $r9,$r0,1
+	SW $r8,$r9
+#; TODO: While 
 doWhile_nAccepted:
+#; if token_is_empty
+	LA $r8,token_is_empty
+	LW $r9,$r8
+	BZI $r9 token_not_empty
+#;TODO: Fill in arguments
+	CALL nextToken
+	SW $r8,$r0
+token_not_empty:	
+#; Switch Statement
 	LA $r8,switch_sState
 	LW $r9,$r27
 	MULTI $r9,$r9,4
