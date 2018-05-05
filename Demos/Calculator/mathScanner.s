@@ -1,4 +1,6 @@
 .data
+message_syntax_error:	.asciiz "Syntax error\n"
+message_divide_error:	.asciiz "Divide by zero\n"
 state:	.byte 0,0,0,0
 buffer_is_empty:	.byte 0,0,0,0
 buffer:	 .byte 0,0,0,0
@@ -6,25 +8,25 @@ prevcharacter:	 .byte 0,0,0,0
 number:	 .byte 0,0,0,0
 gotoLookup:
 	.byte 6,0,0,0
-	.byte -1,0,0,0
+	.byte 0,0,0,0
 	.byte 7,0,0,0
-	.byte -1,0,0,0
+	.byte 0,0,0,0
 	.byte 8,0,0,0
-	.byte -1,0,0,0
-	.byte -1,0,0,0
-	.byte -1,0,0,0
-	.byte -1,0,0,0
-	.byte -1,0,0,0
+	.byte 0,0,0,0
+	.byte 0,0,0,0
+	.byte 0,0,0,0
+	.byte 0,0,0,0
+	.byte 0,0,0,0
 	.byte 16,0,0,0
 	.byte 17,0,0,0
 	.byte 18,0,0,0
 	.byte 19,0,0,0
-	.byte -1,0,0,0
-	.byte -1,0,0,0
-	.byte -1,0,0,0
-	.byte -1,0,0,0
-	.byte -1,0,0,0
-	.byte -1,0,0,0
+	.byte 0,0,0,0
+	.byte 0,0,0,0
+	.byte 0,0,0,0
+	.byte 0,0,0,0
+	.byte 0,0,0,0
+	.byte 0,0,0,0
 token_is_empty:	.byte 0,0,0,0
 token:
 	.byte 0,0,0,0
@@ -43,14 +45,20 @@ accepted:	.byte 0,0,0,0
 tType: .byte 0,0,0,0
 tVal: .byte 0,0,0,0
 sState: .byte 0,0,0,0
+sp_original:	.byte 0,0,0,0
 .text
 nextToken:
 	LA $r8,buffer_is_empty
 	LW $r9,$r8
-	BZI $r8,nextToken_doWhile_stateNot1
+	BZI $r9,nextToken_doWhile1
+#; buffer = getchar();
+	LA $r10,buffer
+	INPB $r11,$p0
+	SW $r10,$r11
+#; buffer_is_empty = 0;
 	ADDI $r9,$r0,0
-	SW $r9,$r8
-nextToken_doWhile_stateNot1:
+	SW $r8,$r9
+nextToken_doWhile1:
 	LA $r8,state
 	LW $r8,$r8
 	LA $r9,nextToken_switch_state
@@ -87,7 +95,8 @@ nextToken_case1:
 	J nextToken_switchFinished
 nextToken_else1:
 	LTI $r10,$r9,49
-	GTI $r11,$r9,58
+	MULTI $r12,$r9,-1
+	LTI $r11,$r2,-58
 	OR $r10,$r10,$r11
 	BZI $r10,nextToken_else2
 #; state = 2;
@@ -124,7 +133,7 @@ nextToken_else2:
 	OR $r10,$r10,$r11
 	EQI $r11,$r9,41
 	OR $r10,$r10,$r11
-	BZ $r10,nextToken_else3
+	BZI $r10,nextToken_else3
 #; state = 4;
 	LA $r10,state
 	ADDI $r11,$r0,4
@@ -156,8 +165,8 @@ nextToken_else3:
 #; break;
 	J nextToken_switchFinished
 nextToken_else4:
-	EQ $r9, 10
-	BZ nextToken_else5
+	EQI $r10,$r9, 10
+	BZI $r10,nextToken_else5
 #; buffer_is_empty = 1;
 	LA $r10,buffer_is_empty
 	ADDI $r11,$r0,1
@@ -184,9 +193,10 @@ nextToken_case2:
 	LA $r9,buffer
 	LW $r9,$r9
 	LTI $r10,$r9,48
-	GTI $r11,$r9,57
+	MULTI $r12,$r9,-1
+	LTI $r11,$r12,-57
 	OR $r10,$r10,$r11
-	BNZ $r10,nextToken_else6
+	BNZI $r10,nextToken_else6
 #; number = number * 10 + (buffer - '0');
 #; number * 10
 	LA $r10,number
@@ -312,8 +322,17 @@ nextToken_switchFinished:
 	LA $r8,state
 	LW $r8,$r8
 	EQI $r8,$r8,1
-	BZI $r8,nextToken_doWhile_stateNot1
-#; TODO: Insert reset_stack
+	BZI $r8,nextToken_doWhile1
+	RET
+reset_stack:
+	LA $r8,sp_original
+	LW $r8,$r8
+	ADD $r29,$r0,$r8
+	SUBI $r29,$r29,1
+	SW $r29,$r0
+	SUBI $r29,$r29,1
+	SW $r29,$r0
+	RET
 push:
 	SUBI $r29,$r29,4
 	SW $r29,$r4
@@ -328,12 +347,26 @@ pop:
 	SW $r8,$r5
 	ADDI $r29,$r29,4
 	RET
-#; TODO: Insert read_in_error
+read_in_error:
+#; printf("Syntax error\n");
+#; buffer_is_empty = 1;
+	LA $r8,buffer_is_empty
+	ADDI $r9,$r0,1
+	SW $r8,$r9
+#; while(getchar() != '\n')
+read_in_error_loop1:
+	INPB $r8,$p0
+	EQI $r8,$r8,10
+	BNZI $r8,read_in_error_loop1
+	RET
 main:
 #; Initialize state
 	LA $r8,state
 	ADDI $r9,$r0,1
 	SW $r8,$r9
+#; Set sp_original
+	LA $r8,sp_original
+	SW $r8,$r29
 #; Initialize buffer_is_empty
 	LA $r8,buffer_is_empty
 	ADDI $r9,$r0,1
@@ -370,7 +403,7 @@ main_if1:
 	LW $r9,$r9
 	MULTI $r9,$r9,4
 	ADD $r8,$r8,$r9
-	J $r8
+	BZ $r0,$r8
 main_switch1:
 	J main_case0
 	J main_case1
@@ -402,7 +435,7 @@ main_case0:
 	SW $r8,$r9
 #; a[1] = tVal;
 	LA $r9,tVal
-	LA $r9,$r9
+	LW $r9,$r9
 	ADDI $r8,$r8,4
 	SW $r8,$r9
 #; token_is_empty = 1;
@@ -448,8 +481,8 @@ main_else3:
 	J main_endSwitch2
 main_else4:
 #; Error
-#; TODO: read_in_error();
-#; TODO: reset_stack();
+	CALL read_in_error
+	CALL reset_stack
 #; token_is_empty = 1;
 	LA $r8,token_is_empty
 	ADDI $r9,$r0,1
@@ -504,8 +537,8 @@ main_else6:
 #; break;
 main_else7:
 #; Error
-#; TODO: read_in_error();
-#; TODO: reset_stack();
+	CALL read_in_error
+	CALL reset_stack
 #; token_is_empty = 1;
 	LA $r8,token_is_empty
 	ADDI $r9,$r0,1
@@ -523,7 +556,7 @@ main_endSwitch3:
 	J main_endSwitch1
 main_case3:
 #; continue only, no break
-#; TODO: reset_stack();
+	CALL reset_stack
 #; token_is_empty = 1;
 	LA $r8,token_is_empty
 	ADDI $r9,$r0,1
@@ -572,15 +605,18 @@ main_else10:
 	J main_endSwitch4
 main_else11:
 	EQI $r9,$r8,8
-	BZI $r9,$r0,main_else12
+	BZI $r9,main_else12
 #; pop(b)
 	LA $r4,b
 	CALL pop
 #; printf("%d\n",b[1])
 	LA $r9,b
 	ADDI $r9,$r9,4
-	OUTPB $r9
-#; TODO: reset_stack();
+	LW $r9,$r9
+	ADDI $r9,$r9,48
+	OUTPB $r9,$p0
+#; reset_stack()
+	CALL reset_stack
 #; token_is_empty = 1
 	LA $r8,token_is_empty
 	ADDI $r9,$r0,1
@@ -588,8 +624,8 @@ main_else11:
 #; continue;
 	J main_endSwitch1
 main_else12:
-#; TODO: read_in_error();
-#; TODO: reset_stack();
+	CALL read_in_error
+	CALL reset_stack
 #; token_is_empty = 1;
 	LA $r8,token_is_empty
 	ADDI $r9,$r0,1
@@ -639,7 +675,7 @@ main_else15:
 	BZI $r9,main_else16
 #; a[0] = 13;
 	LA $r8,a
-	ADDI $r9,$r0
+	ADDI $r9,$r0,13
 	SW $r8,$r9
 #; break;
 	J main_endSwitch5
@@ -648,14 +684,14 @@ main_else16:
 	BZI $r9,main_else17
 #; a[0] = 15;
 	LA $r8,a
-	ADDI $r9,$r0
+	ADDI $r9,$r0,15
 	SW $r8,$r9
 #; break;
 	J main_endSwitch5
 main_else17:
 #; Error
-#; TODO: read_in_error()
-#; TODO: reset_stack();
+	CALL read_in_error
+	CALL reset_stack
 #; token_is_empty = 1;
 	LA $r8,token_is_empty
 	ADDI $r9,$r0,1
@@ -678,7 +714,7 @@ main_case1:
 #; b[0] = gotoLookup[sp[1]];
 	ADD $r8,$r0,$r29
 	ADDI $r8,$r8,4
-	LA $r8,$r8
+	LW $r8,$r8
 	MULTI $r8,$r8,4
 	LA $r9,gotoLookup
 	ADD $r8,$r9,$r8
@@ -698,12 +734,12 @@ main_case7:
 #; b[0] = gotoLookup[sp[1]];
 	ADD $r8,$r0,$r29
 	ADDI $r8,$r8,4
-	LA $r8,$r8
+	LW $r8,$r8
 	MULTI $r8,$r8,4
 	LA $r9,gotoLookup
 	ADD $r8,$r9,$r8
 	LA $r9,b
-	Sw $r9,$r8
+	SW $r9,$r8
 #; b[1] = -b[1];
 	LA $r8,b
 	ADDI $r8,$r0,4
@@ -714,21 +750,276 @@ main_case7:
 	CALL push
 #; break;
 	J main_endSwitch1
-main_case9:
-#;Error
 main_case5:
 main_case14:
 main_case9:
 #; continue only, no break
+	CALL read_in_error
+	CALL reset_stack
+#; token_is_empty = 1;
+	LA $r8,token_is_empty
+	ADDI $r9,$r0,1
+	SW $r8,$r9
 	J main_endSwitch1
 main_case15:
+#; sp += 2;
+	ADDI $r29,$r29,2
+#; pop(b);
+	LA $r4,b
+	CALL pop
+#; sp += 2;
+	ADDI $r29,$r29,2
+#; b[0] = gotoLookup[sp[1]];
+	ADD $r8,$r0,$r29
+	ADDI $r8,$r8,4
+	LW $r8,$r8
+	MULTI $r8,$r8,4
+	LA $r9,gotoLookup
+	ADD $r8,$r9,$r8
+	LA $r9,b
+	SW $r9,$r8
+#; push(b);
+	LA $r4,b
+	CALL push
+#; break;
 	J main_endSwitch1
 main_case18:
+#; pop(a);
+	LA $r4,a
+	CALL pop
+#; sp += 2;
+	ADDI $r29,$r29,2
+#; pop(b);
+	LA $r4,b
+	CALL pop
+#; b[0] = gotoLookup[sp[1]]
+	ADD $r8,$r0,$r29
+	ADDI $r8,$r8,4
+	LW $r8,$r8
+	MULTI $r8,$r8,4
+	LA $r9,gotoLookup
+	ADD $r8,$r9,$r8
+	LA $r9,b
+	SW $r9,$r8
+#; b[1] = a[1] * b[1]
+	LA $r8,a
+	ADDI $r8,$r8,4
+	LW $r8,$r8
+	LA $r9,b
+	ADDI $r9,$r9,4
+	LW $r10,$r9
+	MULT $r10,$r8,$r10,$r0
+	SW $r9,$r10
+#; push(b);
+	LA $r4,b
+	CALL push
+#; break;
 	J main_endSwitch1
 main_case19:
+#; pop(a);
+	LA $r4,a
+	CALL pop
+#; sp += 2;
+	ADDI $r29,$r29,2
+#; pop(b);
+	LA $r4,b
+	CALL pop
+#; if(a[1] == 0){
+	LA $r8,a
+	ADDI $r8,$r8,4
+	LW $r8,$r8
+	BNZI $r8,main_else18
+#; TODO: printf("Divide by zero\n")
+	CALL read_in_error
+	CALL reset_stack
+#; token_is_empty = 1;
+	LA $r8,token_is_empty
+	ADDI $r9,$r0,1
+	SW $r8,$r9
+#; continue;
+	J main_endSwitch1
+main_else18:
+#; b[0] = gotoLookup[sp[1]]
+	ADD $r8,$r0,$r29
+	ADDI $r8,$r8,4
+	LW $r8,$r8
+	MULTI $r8,$r8,4
+	LA $r9,gotoLookup
+	ADD $r8,$r9,$r8
+	LA $r9,b
+	SW $r9,$r8
+#; b[1] = b[1] / a[1]
+	LA $r8,a
+	ADDI $r8,$r8,4
+	LW $r8,$r8
+	LA $r9,b
+	ADDI $r9,$r9,4
+	LW $r10,$r9
+	DIV $r10,$r10,$r8,$r0
+	SW $r9,$r10
+#; push(b);
+	LA $r4,b
+	CALL push
+#; break;
 	J main_endSwitch1
 main_case16:
+#; if(tType == TOKEN_MULT || tType == TOKEN_DIV)
+	LA $r8,tType
+	LW $r8,$r8
+	EQI $r9,$r8,3
+	EQI $r10,$r8,4
+	OR $r9,$r10,$r9
+	BZI $r9,main_else19
+#; switch(tType) -> if(tType == TOKEN_MULT)
+	LA $r8,tType
+	LW $r8,$r8
+	EQI $r9,$r8,3
+	BZI $r9,main_else20
+#; a[0] = 12;
+	LA $r8,a
+	ADDI $r9,$r0,12
+	SW $r8,$r9
+#; break;
+	J main_endSwitch5
+main_else20:
+	EQI $r9,$r8,4
+	BZI $r9,main_else21
+#; a[0] = 13;
+	LA $r8,a
+	ADDI $r9,$r0,13
+	SW $r8,$r9
+#; break;
+	J main_endSwitch5
+main_else21:
+#; Error
+	CALL read_in_error
+	CALL reset_stack
+#; token_is_empty = 1;
+	LA $r8,token_is_empty
+	ADDI $r9,$r0,1
+	SW $r8,$r9
+#; continue;
+	J main_endSwitch1
+main_endSwitch5:
+#; push(a);
+	LA $r4,a
+	CALL push
+#; token_is_empty = 1
+	LA $r8,token_is_empty
+	ADDI $r9,$r0,1
+	SW $r8,$r9
+main_else19:
+#; pop(a);
+	LA $r4,a
+	CALL pop
+#; sp += 2;
+	ADDI $r29,$r29,2
+#; pop(b);
+	LA $r4,b
+	CALL pop
+#; b[0] = gotoLookup[sp[1]];
+	ADD $r8,$r0,$r29
+	ADDI $r8,$r8,4
+	LW $r8,$r8
+	MULTI $r8,$r8,4
+	LA $r9,gotoLookup
+	ADD $r8,$r9,$r8
+	LA $r9,b
+	SW $r9,$r8
+#; b[1] = b[1] - a[1]
+	LA $r8,a
+	ADDI $r8,$r8,4
+	LW $r8,$r8
+	LA $r9,b
+	ADDI $r9,$r9,4
+	LW $r10,$r9
+	SUB $r10,$r10,$r8
+	SW $r9,$r10
+#; push(b);
+	LA $r4,b
+	CALL push
+#; break;
 	J main_endSwitch1
 main_case17:
-
-main_endSwitch1: ADD $r0,$r0,$r0
+#; if(tType == TOKEN_MULT || tType == TOKEN_DIV)
+	LA $r8,tType
+	LW $r8,$r8
+	EQI $r9,$r8,3
+	EQI $r10,$r8,4
+	OR $r9,$r10,$r9
+	BZI $r9,main_else22
+#; switch(tType) -> if(tType == TOKEN_MULT)
+	LA $r8,tType
+	LW $r8,$r8
+	EQI $r9,$r8,3
+	BZI $r9,main_else23
+#; a[0] = 12;
+	LA $r8,a
+	ADDI $r9,$r0,12
+	SW $r8,$r9
+#; break;
+	J main_endSwitch5
+main_else23:
+	EQI $r9,$r8,4
+	BZI $r9,main_else24
+#; a[0] = 13;
+	LA $r8,a
+	ADDI $r9,$r0,13
+	SW $r8,$r9
+#; break;
+	J main_endSwitch6
+main_else24:
+#; Error
+	CALL read_in_error
+	CALL reset_stack
+#; token_is_empty = 1;
+	LA $r8,token_is_empty
+	ADDI $r9,$r0,1
+	SW $r8,$r9
+#; continue;
+	J main_endSwitch1
+main_endSwitch6:
+#; push(a);
+	LA $r4,a
+	CALL push
+#; token_is_empty = 1
+	LA $r8,token_is_empty
+	ADDI $r9,$r0,1
+	SW $r8,$r9
+main_else22:
+#; pop(a);
+	LA $r4,a
+	CALL pop
+#; sp += 2;
+	ADDI $r29,$r29,2
+#; pop(b);
+	LA $r4,b
+	CALL pop
+#; b[0] = gotoLookup[sp[1]];
+	ADD $r8,$r0,$r29
+	ADDI $r8,$r8,4
+	LW $r8,$r8
+	MULTI $r8,$r8,4
+	LA $r9,gotoLookup
+	ADD $r8,$r9,$r8
+	LA $r9,b
+	SW $r9,$r8
+#; b[1] = b[1] + a[1]
+	LA $r8,a
+	ADDI $r8,$r8,4
+	LW $r8,$r8
+	LA $r9,b
+	ADDI $r9,$r9,4
+	LW $r10,$r9
+	ADD $r10,$r10,$r8
+	SW $r9,$r10
+#; push(b);
+	LA $r4,b
+	CALL push
+#; break;
+	J main_endSwitch1
+main_endSwitch1:
+	LA $r8,accepted
+	LW $r8,$r8
+	SUBI $r8,$r8,1
+	BNZI $r8,main_do1
