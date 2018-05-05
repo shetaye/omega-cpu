@@ -605,6 +605,71 @@ main_endSwitch4:
 	ADDI $r9,$r0,1
 	SW $r8,$r9
 main_case8:
+#; switch(tType) -> if(tType == TOKEN_MINUS)
+	LA $r8,tType
+	LW $r8,$r8
+	EQI $r9,$r8,2
+	BZI $r9,main_else13
+#; a[0] = 10;
+	LA $r8,a
+	ADDI $r9,$r0,10
+	SW $r8,$r9
+#; break;
+	J main_endSwitch5
+main_else13:
+	EQI $r9,$r8,1
+	BZI $r9,main_else14
+#; a[0] = 11;
+	LA $r8,a
+	ADDI $r9,$r0,11
+	SW $r8,$r9
+#; break;
+	J main_endSwitch5
+main_else14:
+	EQI $r9,$r8,3
+	BZI $r9,main_else15
+#; a[0] = 12;
+	LA $r8,a
+	ADDI $r9,$r0,12
+	SW $r8,$r9
+#; break;
+	J main_endSwitch5
+main_else15:
+	EQI $r9,$r8,4
+	BZI $r9,main_else16
+#; a[0] = 13;
+	LA $r8,a
+	ADDI $r9,$r0
+	SW $r8,$r9
+#; break;
+	J main_endSwitch5
+main_else16:
+	EQI $r9,$r8,6
+	BZI $r9,main_else17
+#; a[0] = 15;
+	LA $r8,a
+	ADDI $r9,$r0
+	SW $r8,$r9
+#; break;
+	J main_endSwitch5
+main_else17:
+#; Error
+#; TODO: read_in_error()
+#; TODO: reset_stack();
+#; token_is_empty = 1;
+	LA $r8,token_is_empty
+	ADDI $r9,$r0,1
+	SW $r8,$r9
+#; continue
+	J main_endSwitch1
+main_endSwitch5:
+#; push(a);
+	LA $r4,a
+	CALL push
+#; token_is_empty = 1;
+	LA $r8,token_is_empty
+	ADDI $r9,$r0,1
+	SW $r8,$r9
 	J main_endSwitch1
 main_case1:
 	J main_endSwitch1
