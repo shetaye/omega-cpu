@@ -40,9 +40,10 @@ b:
 	.byte 0,0,0,0
 	.byte 0,0,0,0
 accepted:	.byte 0,0,0,0
+tType: .byte 0,0,0,0
+tVal: .byte 0,0,0,0
+sState: .byte 0,0,0,0
 .text
-
-#; TODO: Insert nextToken
 nextToken:
 	LA $r8,buffer_is_empty
 	LW $r9,$r8
@@ -234,7 +235,8 @@ nextToken_case3:
 	ADDI $r10,$r0,0
 	SW $r4,$r10
 #; p[1] = 0;
-	SW $r4,$r0
+	ADDI $r11,$r4,4
+	SW $r11,$r0
 #; return;
 	RET
 #; break;
@@ -317,6 +319,7 @@ push:
 	SW $r29,$r4
 	SUBI $r29,$r29,4
 	SW $r29,$r5
+	RET
 pop:
 	LW $r8,$r29
 	SW $r8,$r4
@@ -324,6 +327,7 @@ pop:
 	LW $r8,$r29
 	SW $r8,$r5
 	ADDI $r29,$r29,4
+	RET
 #; TODO: Insert read_in_error
 main:
 #; Initialize state
@@ -334,75 +338,79 @@ main:
 	LA $r8,buffer_is_empty
 	ADDI $r9,$r0,1
 	SW $r8,$r9
-#; TODO: While 
-doWhile_nAccepted:
+main_do1:
 #; if token_is_empty
 	LA $r8,token_is_empty
 	LW $r9,$r8
-	BZI $r9 token_not_empty
+	BZI $r9 main_if1
 #;TODO: Fill in arguments
 	CALL nextToken
 	SW $r8,$r0
-token_not_empty:	
+main_if1:	
+#; tType = token[0];
+
 #; Switch Statement
-	LA $r8,switch_sState
-	LW $r9,$r27
+	LA $r9,state
+	LA $r8,main_switch1
+	LW $r9,$r9
 	MULTI $r9,$r9,4
 	ADD $r8,$r8,$r9
-switch_sState:
-	J case0
-	J case1
-	J case2
-	J case3
-	J case4
-	J case5
-	J case6
-	J case7
-	J case8
-	J case9
-	J case10
-	J case11
-	J case12
-	J case13
-	J case14
-	J case15
-	J case16
-	J case17
-case0:
-	J switch_sState_finished
-case2:
-case4:
-case10:
-case11:
-case12:
-case13:
-	J switch_sState_finished
-case3:
+	J $r8
+main_switch1:
+	J main_case0
+	J main_case1
+	J main_case2
+	J main_case3
+	J main_case4
+	J main_case5
+	J main_case6
+	J main_case7
+	J main_case8
+	J main_case9
+	J main_case10
+	J main_case11
+	J main_case12
+	J main_case13
+	J main_case14
+	J main_case15
+	J main_case16
+	J main_case17
+main_case0:
+	J main_switch1_end
+#; switch(tType)
+main_case2:
+main_case4:
+main_case10:
+main_case11:
+main_case12:
+main_case13:
+	J main_switch1_end
+main_case3:
 #; continue only, no break
-	J switch_sState_finished
-case6:
-	J switch_sState_finished
-case8:
-	J switch_sState_finished
-case1:
-	J switch_sState_finished
-case7:
-	J switch_sState_finished
-case9:
+	J main_switch1_end
+main_case6:
+	J main_switch1_end
+main_case8:
+	J main_switch1_end
+main_case1:
+	J main_switch1_end
+main_case7:
+	J main_switch1_end
+main_case9:
 #;Error
-case5:
-case14:
-case9:
+main_case5:
+main_case14:
+main_case9:
 #; continue only, no break
-	J switch_sState_finished
-case15:
-	J switch_sState_finished
-case18:
-	J switch_sState_finished
-case19:
-	J switch_sState_finished
-case16:
-	J switch_sState_finished
-case17:
+	J main_switch1_end
+main_case15:
+	J main_switch1_end
+main_case18:
+	J main_switch1_end
+main_case19:
+	J main_switch1_end
+main_case16:
+	J main_switch1_end
+main_case17:
 
-switch_sState_finished: ADD $r0,$r0,$r0
+main_switch1_end: ADD $r0,$r0,$r0
