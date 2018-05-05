@@ -672,6 +672,22 @@ main_endSwitch5:
 	SW $r8,$r9
 	J main_endSwitch1
 main_case1:
+#; pop(b);
+	LA $r4,b
+	CALL pop
+#; b[0] = gotoLookup[sp[1]];
+	ADD $r8,$r0,$r29
+	ADDI $r8,$r8,4
+	LA $r8,$r8
+	MULTI $r8,$r8,4
+	LA $r9,gotoLookup
+	ADD $r8,$r9,$r8
+	LA $r9,b
+	SW $r9,$r8
+#; push(b)
+	LA $r4,b
+	CALL push
+#; break
 	J main_endSwitch1
 main_case7:
 	J main_endSwitch1
