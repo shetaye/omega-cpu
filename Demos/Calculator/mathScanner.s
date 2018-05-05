@@ -690,6 +690,29 @@ main_case1:
 #; break
 	J main_endSwitch1
 main_case7:
+#; pop(b);
+	LA $r4,b
+	CALL pop
+#; sp += 2;
+	ADDI $r29,$r29,2
+#; b[0] = gotoLookup[sp[1]];
+	ADD $r8,$r0,$r29
+	ADDI $r8,$r8,4
+	LA $r8,$r8
+	MULTI $r8,$r8,4
+	LA $r9,gotoLookup
+	ADD $r8,$r9,$r8
+	LA $r9,b
+	Sw $r9,$r8
+#; b[1] = -b[1];
+	LA $r8,b
+	ADDI $r8,$r0,4
+	MULTI $r9,$r8,-1
+	SW $r8,$r9
+#; push(b);
+	LA $r4,b
+	CALL push
+#; break;
 	J main_endSwitch1
 main_case9:
 #;Error
