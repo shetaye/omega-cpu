@@ -1,8 +1,11 @@
+.text
+	J main
 .data
+prompt:	.asciiz "> "
 message_syntax_error:	.asciiz "Syntax error\n"
 message_divide_error:	.asciiz "Divide by zero\n"
 state:	.byte 0,0,0,0
-buffer_is_empty:	.byte 0,0,0,0
+buffer_is_empty:	.byte 1,0,0,0
 buffer:	 .byte 0,0,0,0
 prevcharacter:	 .byte 0,0,0,0
 number:	 .byte 0,0,0,0
@@ -27,7 +30,7 @@ gotoLookup:
 	.byte 0,0,0,0
 	.byte 0,0,0,0
 	.byte 0,0,0,0
-token_is_empty:	.byte 0,0,0,0
+token_is_empty:	.byte 1,0,0,0
 token:
 	.byte 0,0,0,0
 	.byte 0,0,0,0
@@ -53,7 +56,8 @@ nextToken:
 	BZI $r9,nextToken_doWhile1
 #; buffer = getchar();
 	LA $r10,buffer
-	INPB $r11,$p0
+	INPB $r11,$p1
+	OUTPB $r11,$p1
 	SW $r10,$r11
 #; buffer_is_empty = 0;
 	ADDI $r9,$r0,0
@@ -118,6 +122,7 @@ nextToken_else1:
 #; buffer = getchar();
 	LA $r10,buffer
 	INPB $r11,$p1
+	OUTPB $r11,$p1
 	SW $r10,$r11
 #; break;
 	J nextToken_switchFinished
@@ -146,6 +151,7 @@ nextToken_else2:
 #; buffer = getchar();
 	LA $r10,buffer
 	INPB $r11,$p1
+	OUTPB $r11,$p1
 	SW $r10,$r11
 #; break;
 	J nextToken_switchFinished
@@ -161,6 +167,7 @@ nextToken_else3:
 #; buffer = getchar();
 	LA $r10,buffer
 	INPB $r11,$p1
+	OUTPB $r11,$p1
 	SW $r10,$r11
 #; break;
 	J nextToken_switchFinished
@@ -220,6 +227,7 @@ nextToken_case2:
 #; buffer = getchar();
 	LA $r10,buffer
 	INPB $r11,$p1
+	OUTPB $r11,$p1
 	SW $r10,$r11
 #; break;
 	J nextToken_switchFinished
@@ -327,25 +335,27 @@ nextToken_switchFinished:
 reset_stack:
 	LA $r8,sp_original
 	LW $r8,$r8
-	ADD $r29,$r0,$r8
-	SUBI $r29,$r29,1
-	SW $r29,$r0
-	SUBI $r29,$r29,1
-	SW $r29,$r0
+	ADD $r27,$r0,$r8
+	SUBI $r27,$r27,1
+	SW $r27,$r0
+	SUBI $r27,$r27,1
+	SW $r27,$r0
+	LA $r4,prompt
+	CALL print_string
 	RET
 push:
-	SUBI $r29,$r29,4
-	SW $r29,$r4
-	SUBI $r29,$r29,4
-	SW $r29,$r5
+	SUBI $r27,$r27,4
+	SW $r27,$r4
+	SUBI $r27,$r27,4
+	SW $r27,$r5
 	RET
 pop:
-	LW $r8,$r29
+	LW $r8,$r27
 	SW $r8,$r4
-	ADDI $r29,$r29,4
-	LW $r8,$r29
+	ADDI $r27,$r27,4
+	LW $r8,$r27
 	SW $r8,$r5
-	ADDI $r29,$r29,4
+	ADDI $r27,$r27,4
 	RET
 read_in_error:
 #; printf("Syntax error\n");
@@ -355,7 +365,8 @@ read_in_error:
 	SW $r8,$r9
 #; while(getchar() != '\n')
 read_in_error_loop1:
-	INPB $r8,$p0
+	INPB $r8,$p1
+	OUTPB $r8,$p1
 	EQI $r8,$r8,10
 	BNZI $r8,read_in_error_loop1
 	RET
@@ -366,16 +377,15 @@ main:
 	SW $r8,$r9
 #; Set sp_original
 	LA $r8,sp_original
-	SW $r8,$r29
-#; Initialize buffer_is_empty
-	LA $r8,buffer_is_empty
-	ADDI $r9,$r0,1
-	SW $r8,$r9
+	ADDI $r27,$r0,1
+	SLL $r27,$r27,14
+	SW $r8,$r27
+	ADDI $r28,$r27,0
 main_do1:
 #; if token_is_empty
 	LA $r8,token_is_empty
 	LW $r9,$r8
-	BZI $r9 main_if1
+	BZI $r9,main_if1
 	LA $r4,token
 	CALL nextToken
 	SW $r8,$r0
@@ -393,7 +403,7 @@ main_if1:
 	SW $r8,$r9
 #; sState = sp[1];
 	LA $r9,sState
-	ADD $r8,$r0,$r29
+	ADD $r8,$r0,$r27
 	ADDI $r8,$r8,4
 	LW $r8,$r8
 	SW $r9,$r8 
@@ -403,7 +413,7 @@ main_if1:
 	LW $r9,$r9
 	MULTI $r9,$r9,4
 	ADD $r8,$r8,$r9
-	BZ $r0,$r8
+	JR $r8
 main_switch1:
 	J main_case0
 	J main_case1
@@ -612,9 +622,10 @@ main_else11:
 #; printf("%d\n",b[1])
 	LA $r9,b
 	ADDI $r9,$r9,4
-	LW $r9,$r9
-	ADDI $r9,$r9,48
-	OUTPB $r9,$p0
+	LW $r4,$r9
+	CALL print_int
+	ADDI $r9,$r0,10
+	OUTPB $r9,$p1
 #; reset_stack()
 	CALL reset_stack
 #; token_is_empty = 1
@@ -712,7 +723,7 @@ main_case1:
 	LA $r4,b
 	CALL pop
 #; b[0] = gotoLookup[sp[1]];
-	ADD $r8,$r0,$r29
+	ADD $r8,$r0,$r27
 	ADDI $r8,$r8,4
 	LW $r8,$r8
 	MULTI $r8,$r8,4
@@ -730,9 +741,9 @@ main_case7:
 	LA $r4,b
 	CALL pop
 #; sp += 2;
-	ADDI $r29,$r29,2
+	ADDI $r27,$r27,2
 #; b[0] = gotoLookup[sp[1]];
-	ADD $r8,$r0,$r29
+	ADD $r8,$r0,$r27
 	ADDI $r8,$r8,4
 	LW $r8,$r8
 	MULTI $r8,$r8,4
@@ -763,14 +774,14 @@ main_case9:
 	J main_endSwitch1
 main_case15:
 #; sp += 2;
-	ADDI $r29,$r29,2
+	ADDI $r27,$r27,2
 #; pop(b);
 	LA $r4,b
 	CALL pop
 #; sp += 2;
-	ADDI $r29,$r29,2
+	ADDI $r27,$r27,2
 #; b[0] = gotoLookup[sp[1]];
-	ADD $r8,$r0,$r29
+	ADD $r8,$r0,$r27
 	ADDI $r8,$r8,4
 	LW $r8,$r8
 	MULTI $r8,$r8,4
@@ -788,12 +799,12 @@ main_case18:
 	LA $r4,a
 	CALL pop
 #; sp += 2;
-	ADDI $r29,$r29,2
+	ADDI $r27,$r27,2
 #; pop(b);
 	LA $r4,b
 	CALL pop
 #; b[0] = gotoLookup[sp[1]]
-	ADD $r8,$r0,$r29
+	ADD $r8,$r0,$r27
 	ADDI $r8,$r8,4
 	LW $r8,$r8
 	MULTI $r8,$r8,4
@@ -820,7 +831,7 @@ main_case19:
 	LA $r4,a
 	CALL pop
 #; sp += 2;
-	ADDI $r29,$r29,2
+	ADDI $r27,$r27,2
 #; pop(b);
 	LA $r4,b
 	CALL pop
@@ -840,7 +851,7 @@ main_case19:
 	J main_endSwitch1
 main_else18:
 #; b[0] = gotoLookup[sp[1]]
-	ADD $r8,$r0,$r29
+	ADD $r8,$r0,$r27
 	ADDI $r8,$r8,4
 	LW $r8,$r8
 	MULTI $r8,$r8,4
@@ -913,12 +924,12 @@ main_else19:
 	LA $r4,a
 	CALL pop
 #; sp += 2;
-	ADDI $r29,$r29,2
+	ADDI $r27,$r27,2
 #; pop(b);
 	LA $r4,b
 	CALL pop
 #; b[0] = gotoLookup[sp[1]];
-	ADD $r8,$r0,$r29
+	ADD $r8,$r0,$r27
 	ADDI $r8,$r8,4
 	LW $r8,$r8
 	MULTI $r8,$r8,4
@@ -991,12 +1002,12 @@ main_else22:
 	LA $r4,a
 	CALL pop
 #; sp += 2;
-	ADDI $r29,$r29,2
+	ADDI $r27,$r27,2
 #; pop(b);
 	LA $r4,b
 	CALL pop
 #; b[0] = gotoLookup[sp[1]];
-	ADD $r8,$r0,$r29
+	ADD $r8,$r0,$r27
 	ADDI $r8,$r8,4
 	LW $r8,$r8
 	MULTI $r8,$r8,4
