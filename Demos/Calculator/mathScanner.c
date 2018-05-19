@@ -30,6 +30,7 @@ void nextToken(int* p){
   }
   char prevcharacter;
   int number;
+  state = 1;
 #ifdef DEBUG
   printf("nextToken buff: %c state: %d \n",buffer,state);
 #endif

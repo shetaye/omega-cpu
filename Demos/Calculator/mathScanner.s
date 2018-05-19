@@ -4,7 +4,7 @@
 prompt:	.asciiz "> "
 message_syntax_error:	.asciiz "Syntax error\n"
 message_divide_error:	.asciiz "Divide by zero\n"
-state:	.byte 0,0,0,0
+state:	.byte 1,0,0,0
 buffer_is_empty:	.byte 1,0,0,0
 buffer:	 .byte 0,0,0,0
 prevcharacter:	 .byte 0,0,0,0
@@ -58,13 +58,21 @@ nextToken:
 	LA $r10,buffer
 	INPB $r11,$p1
 	OUTPB $r11,$p1
-	SW $r10,$r11
+	ADDI $r16,$r0,65
+	OUTPB $r16,$p1
+	SW $r11,$r10
 #; buffer_is_empty = 0;
 	ADDI $r9,$r0,0
-	SW $r8,$r9
+	SW $r9,$r8
+#; state = 1;
+	LA $r8,state
+	ADDI $r9,$r0,1
+	SW $r9,$r8
 nextToken_doWhile1:
 	LA $r8,state
 	LW $r8,$r8
+	ADDI $r9,$r8,48
+	OUTPB $r9,$p1
 	LA $r9,nextToken_switch_state
 	MULTI $r8,$r8,4
 	ADD $r9,$r9,$r8
@@ -78,23 +86,26 @@ nextToken_switch_state:
 nextToken_case0:
 	J nextToken_switchFinished
 nextToken_case1:
+	ADDI $r16,$r0,67
+	OUTPB $r16,$p1
 	LA $r8,buffer
 	LW $r9,$r8
 	EQI $r10,$r9,48
 	BZI $r10,nextToken_else1
 #; state = 3;
+	ADDI $r16,$r0,69
 	LA $r10,state
 	ADDI $r11,$r0,3
-	SW $r10,$r11
+	SW $r11,$r10
 #; number = 0;
 	LA $r10,number
 	ADDI $r11,$r0,0
-	SW $r10,$r11
+	SW $r11,$r10
 #; prevcharacter = buffer;
 	LA $r10,buffer
 	LW $r10,$r10
 	LA $r11,prevcharacter
-	SW $r11,$r10
+	SW $r10,$r11
 #; break;
 	J nextToken_switchFinished
 nextToken_else1:
@@ -107,23 +118,23 @@ nextToken_else1:
 	LA $r10,state
 	LW $r11,$r10
 	ADDI $r11,$r0,2
-	SW $r10,$r11
+	SW $r11,$r10
 #; number = buffer - 10;
 	LA $r10,buffer
 	LW $r11,$r10
 	LA $r10,number
 	SUBI $r11,$r11,48
-	SW $r10,$r11
+	SW $r11,$r10
 #; prevcharacter = buffer;
 	LA $r10,buffer
 	LW $r10,$r10
 	LA $r11,prevcharacter
-	SW $r11,$r10	
+	SW $r10	,$r11
 #; buffer = getchar();
 	LA $r10,buffer
 	INPB $r11,$p1
 	OUTPB $r11,$p1
-	SW $r10,$r11
+	SW $r11,$r10
 #; break;
 	J nextToken_switchFinished
 nextToken_else2:
@@ -142,17 +153,17 @@ nextToken_else2:
 #; state = 4;
 	LA $r10,state
 	ADDI $r11,$r0,4
-	SW $r10,$r11
+	SW $r11,$r10
 #; prevcharacter = buffer;
 	LA $r10,buffer
 	LW $r10,$r10
 	LA $r11,prevcharacter
-	SW $r11,$r10
+	SW $r10,$r11
 #; buffer = getchar();
 	LA $r10,buffer
 	INPB $r11,$p1
 	OUTPB $r11,$p1
-	SW $r10,$r11
+	SW $r11,$r10
 #; break;
 	J nextToken_switchFinished
 nextToken_else3:
@@ -163,12 +174,12 @@ nextToken_else3:
 #; state = 1;
 	LA $r10,state
 	ADDI $r11,$r0,1
-	SW $r10,$r11
+	SW $r11,$r10
 #; buffer = getchar();
 	LA $r10,buffer
 	INPB $r11,$p1
 	OUTPB $r11,$p1
-	SW $r10,$r11
+	SW $r11,$r10
 #; break;
 	J nextToken_switchFinished
 nextToken_else4:
@@ -177,10 +188,10 @@ nextToken_else4:
 #; buffer_is_empty = 1;
 	LA $r10,buffer_is_empty
 	ADDI $r11,$r0,1
-	SW $r10,$r11
+	SW $r11,$r10
 #; p[0] = TOKEN_EOL;
 	ADDI $r10,$r0,8
-	SW $r4,$r10
+	SW $r10,$r4
 #; return;
 	RET
 nextToken_else5:
@@ -190,10 +201,10 @@ nextToken_else5:
 #; buffer_is_empty = 1;
 	LA $r10,buffer_is_empty
 	ADDI $r11,$r0,1
-	SW $r10,$r11
+	SW $r11,$r10
 #; p[0] = TOKEN_ERROR;
 	ADDI $r10,$r0,7
-	SW $r4,$r10
+	SW $r10,$r4
 #; return;
 	RET
 nextToken_case2:
@@ -209,7 +220,7 @@ nextToken_case2:
 	LA $r10,number
 	LW $r11,$r10
 	MULTI $r11,$r11,10
-	SW $r10,$r11
+	SW $r11,$r10
 #; (buffer - '0')
 	LA $r10,buffer
 	LW $r10,$r10
@@ -218,28 +229,28 @@ nextToken_case2:
 	LA $r11,number
 	LW $r12,$r11
 	ADD $r10,$r10,$r12
-	SW $r11,$r10
+	SW $r10,$r11
 #; prevcharacter = buffer;
 	LA $r10,buffer
 	LW $r10,$r10
 	LA $r11,prevcharacter
-	SW $r11,$r10
+	SW $r10,$r11
 #; buffer = getchar();
 	LA $r10,buffer
 	INPB $r11,$p1
 	OUTPB $r11,$p1
-	SW $r10,$r11
+	SW $r11,$r10
 #; break;
 	J nextToken_switchFinished
 nextToken_else6:
 #; p[0] = TOKEN_NUMBER;
 	ADDI $r10,$r0,0
-	SW $r4,$r10
+	SW $r10,$r4
 #; p[1] = number;
 	LA $r10,number
 	LW $r10,$r10
 	ADDI $r11,$r4,4
-	SW $r11,$r10
+	SW $r10,$r11
 #; return;
 	RET
 #; break; (Why? we just returned!)
@@ -248,13 +259,13 @@ nextToken_case3:
 #; state = 1;
 	LA $r10,state
 	ADDI $r11,$r0,1
-	SW $r10,$r11
+	SW $r11,$r10
 #; p[0] = TOKEN_NUMBER;
 	ADDI $r10,$r0,0
-	SW $r4,$r10
+	SW $r10,$r4
 #; p[1] = 0;
 	ADDI $r11,$r4,4
-	SW $r11,$r0
+	SW $r0,$r11
 #; return;
 	RET
 #; break;
@@ -263,7 +274,7 @@ nextToken_case4:
 #; state = 1;
 	LA $r10,state
 	ADDI $r11,$r0,1
-	SW $r10,$r11
+	SW $r11,$r10
 #; switch statement turned to if statement:
 	LA $r10,prevcharacter
 	LW $r10,$r10
@@ -271,7 +282,7 @@ nextToken_case4:
 	BZI $r10,nextToken_else7
 #; p[0] = TOKEN_PLUS;
 	ADDI $r10,$r0,1
-	SW $r4,$r10
+	SW $r10,$r4
 #; break;
 	J nextToken_switch2Finished
 nextToken_else7:
@@ -281,7 +292,7 @@ nextToken_else7:
 	BZI $r10,nextToken_else8
 #; p[0] = TOKEN_MINUS;
 	ADDI $r10,$r0,2
-	SW $r4,$r10
+	SW $r10,$r4
 #; break;
 	J nextToken_switch2Finished
 nextToken_else8:
@@ -291,7 +302,7 @@ nextToken_else8:
 	BZI $r10,nextToken_else9
 #; p[0] = TOKEN_DIV;
 	ADDI $r10,$r0,4
-	SW $r4,$r10
+	SW $r10,$r4
 #; break;
 	J nextToken_switch2Finished
 nextToken_else9:
@@ -301,7 +312,7 @@ nextToken_else9:
 	BZI $r10,nextToken_else10
 #; p[0] = TOKEN_MULT;
 	ADDI $r10,$r0,3
-	SW $r4,$r10
+	SW $r10,$r4
 #; break;
 	J nextToken_switch2Finished
 nextToken_else10:
@@ -311,17 +322,17 @@ nextToken_else10:
 	BZI $r10,nextToken_else11
 #; p[0] = TOKEN_LEFTP;
 	ADDI $r10,$r0,5
-	SW $r4,$r10
+	SW $r10,$r4
 #; break;
 	J nextToken_switch2Finished
 nextToken_else11:
 #; p[0] = TOKEN_RIGHTP;
 	ADDI $r10,$r0,6
-	SW $r4,$r10
+	SW $r10,$r4
 nextToken_switch2Finished:
 #; p[1] = 0;
 	ADDI $r10,$r4,4
-	SW $r10,$r0
+	SW $r0,$r10
 #; return;
 	RET
 #; break;
@@ -330,6 +341,8 @@ nextToken_switchFinished:
 	LA $r8,state
 	LW $r8,$r8
 	EQI $r8,$r8,1
+	ADDI $r16,$r0,71
+	OUTPB $r16,$p1
 	BZI $r8,nextToken_doWhile1
 	RET
 reset_stack:
@@ -337,24 +350,24 @@ reset_stack:
 	LW $r8,$r8
 	ADD $r27,$r0,$r8
 	SUBI $r27,$r27,1
-	SW $r27,$r0
+	SW $r0,$r27
 	SUBI $r27,$r27,1
-	SW $r27,$r0
+	SW $r0,$r27
 	LA $r4,prompt
 	CALL print_string
 	RET
 push:
 	SUBI $r27,$r27,4
-	SW $r27,$r4
+	SW $r4,$r27
 	SUBI $r27,$r27,4
-	SW $r27,$r5
+	SW $r5,$r27
 	RET
 pop:
 	LW $r8,$r27
-	SW $r8,$r4
+	SW $r4,$r8
 	ADDI $r27,$r27,4
 	LW $r8,$r27
-	SW $r8,$r5
+	SW $r5,$r8
 	ADDI $r27,$r27,4
 	RET
 read_in_error:
@@ -362,7 +375,7 @@ read_in_error:
 #; buffer_is_empty = 1;
 	LA $r8,buffer_is_empty
 	ADDI $r9,$r0,1
-	SW $r8,$r9
+	SW $r9,$r8
 #; while(getchar() != '\n')
 read_in_error_loop1:
 	INPB $r8,$p1
@@ -371,15 +384,17 @@ read_in_error_loop1:
 	BNZI $r8,read_in_error_loop1
 	RET
 main:
+	ADDI $r16,$r0,63
+	OUTPB $r16,$p1
 #; Initialize state
 	LA $r8,state
 	ADDI $r9,$r0,1
-	SW $r8,$r9
+	SW $r9,$r8
 #; Set sp_original
 	LA $r8,sp_original
 	ADDI $r27,$r0,1
 	SLL $r27,$r27,14
-	SW $r8,$r27
+	SW $r27,$r8
 	ADDI $r28,$r27,0
 main_do1:
 #; if token_is_empty
@@ -388,25 +403,25 @@ main_do1:
 	BZI $r9,main_if1
 	LA $r4,token
 	CALL nextToken
-	SW $r8,$r0
+	SW $r0,$r8
 main_if1:	
 #; tType = token[0];
 	LA $r8,tType
 	LA $r9,token
 	LW $r9,$r9
-	SW $r8,$r9
+	SW $r9,$r8
 #; tVal = token[1];
 	LA $r8,tVal
 	LA $r9,token
 	ADDI $r9,$r9,4
 	LW $r9,$r9
-	SW $r8,$r9
+	SW $r9,$r8
 #; sState = sp[1];
 	LA $r9,sState
 	ADD $r8,$r0,$r27
 	ADDI $r8,$r8,4
 	LW $r8,$r8
-	SW $r9,$r8 
+	SW $r8 ,$r9
 #; switch(sState)
 	LA $r9,sState
 	LA $r8,main_switch1
@@ -442,16 +457,16 @@ main_case0:
 #; a[0] = 1;
 	LA $r8,a
 	ADDI $r9,$r0,1
-	SW $r8,$r9
+	SW $r9,$r8
 #; a[1] = tVal;
 	LA $r9,tVal
 	LW $r9,$r9
 	ADDI $r8,$r8,4
-	SW $r8,$r9
+	SW $r9,$r8
 #; token_is_empty = 1;
 	LA $r8,token_is_empty
 	ADDI $r9,$r0,1
-	SW $r8,$r9
+	SW $r9,$r8
 #; break;
 	J main_endSwitch2
 main_else1:
@@ -460,11 +475,11 @@ main_else1:
 #; a[0] = 2;
 	LA $r8,a
 	ADDI $r9,$r0,2
-	SW $r8,$r9
+	SW $r9,$r8
 #; token_is_empty = 1;
 	LA $r8,token_is_empty
 	ADDI $r9,$r0,1
-	SW $r8,$r9
+	SW $r9,$r8
 #; break;
 	J main_endSwitch2
 main_else2:
@@ -473,7 +488,7 @@ main_else2:
 #; a[0] = 3
 	LA $r8,a
 	ADDI $r9,$r0,3
-	SW $r8,$r9
+	SW $r9,$r8
 #; break;
 	J main_endSwitch2
 main_else3:
@@ -482,11 +497,11 @@ main_else3:
 #; a[0] = 4;
 	LA $r8,a
 	ADDI $r9,$r0,4
-	SW $r8,$r9
+	SW $r9,$r8
 #; token_is_empty = 1;
 	LA $r8,token_is_empty
 	ADDI $r9,$r0,1
-	SW $r8,$r9
+	SW $r9,$r8
 #; break;
 	J main_endSwitch2
 main_else4:
@@ -496,7 +511,7 @@ main_else4:
 #; token_is_empty = 1;
 	LA $r8,token_is_empty
 	ADDI $r9,$r0,1
-	SW $r8,$r9
+	SW $r9,$r8
 #; continue
 	J main_endSwitch1
 main_endSwitch2:
@@ -519,13 +534,13 @@ main_case13:
 #; a[0] = 1;
 	LA $r8,a
 	ADDI $r9,$r0,1
-	SW $r8,$r9
+	SW $r9,$r8
 #; a[1] = tVal;
 	LA $r8,a
 	LA $r9,tVal
 	ADDI $r8,$r8,4
 	LW $r9,$r9
-	SW $r8,$r9
+	SW $r9,$r8
 #; break;
 	J main_endSwitch3
 main_else5:
@@ -534,7 +549,7 @@ main_else5:
 #; a[0] = 2;
 	LA $r8,a
 	ADDI $r9,$r0,2
-	SW $r8,$r9
+	SW $r9,$r8
 #; break;
 	J main_endSwitch3
 main_else6:
@@ -543,7 +558,7 @@ main_else6:
 #; a[0] = 4;
 	LA $r8,a
 	ADDI $r9,$r0,4
-	SW $r8,$r9
+	SW $r9,$r8
 #; break;
 main_else7:
 #; Error
@@ -552,7 +567,7 @@ main_else7:
 #; token_is_empty = 1;
 	LA $r8,token_is_empty
 	ADDI $r9,$r0,1
-	SW $r8,$r9
+	SW $r9,$r8
 #; continue
 	J main_endSwitch3
 main_endSwitch3:
@@ -562,7 +577,7 @@ main_endSwitch3:
 #; token_is_empty = 1;
 	LA $r8,token_is_empty
 	ADDI $r9,$r0,1
-	SW $r8,$r9
+	SW $r9,$r8
 	J main_endSwitch1
 main_case3:
 #; continue only, no break
@@ -570,7 +585,7 @@ main_case3:
 #; token_is_empty = 1;
 	LA $r8,token_is_empty
 	ADDI $r9,$r0,1
-	SW $r8,$r9
+	SW $r9,$r8
 #; TODO: if & accepted
 #; continue
 	J main_endSwitch1
@@ -583,7 +598,7 @@ main_case6:
 #; a[0] = 10;
 	LA $r8,a
 	ADDI $r9,$r0,10
-	SW $r8,$r9
+	SW $r9,$r8
 #; break;
 	J main_endSwitch4
 main_else8:
@@ -592,7 +607,7 @@ main_else8:
 #; a[0] = 11;
 	LA $r8,a
 	ADDI $r9,$r0,11
-	SW $r8,$r9
+	SW $r9,$r8
 #; break;
 	J main_endSwitch4
 main_else9:
@@ -601,7 +616,7 @@ main_else9:
 #; a[0] = 12;
 	LA $r8,a
 	ADDI $r9,$r0,12
-	SW $r8,$r9
+	SW $r9,$r8
 #; break;
 	J main_endSwitch4
 main_else10:
@@ -610,7 +625,7 @@ main_else10:
 #; a[0] = 13;
 	LA $r8,a
 	ADDI $r9,$r0,13
-	SW $r8,$r9
+	SW $r9,$r8
 #; break;
 	J main_endSwitch4
 main_else11:
@@ -631,7 +646,7 @@ main_else11:
 #; token_is_empty = 1
 	LA $r8,token_is_empty
 	ADDI $r9,$r0,1
-	SW $r8,$r9
+	SW $r9,$r8
 #; continue;
 	J main_endSwitch1
 main_else12:
@@ -640,7 +655,7 @@ main_else12:
 #; token_is_empty = 1;
 	LA $r8,token_is_empty
 	ADDI $r9,$r0,1
-	SW $r8,$r9
+	SW $r9,$r8
 #; continue
 	J main_endSwitch1
 main_endSwitch4:
@@ -650,7 +665,7 @@ main_endSwitch4:
 #; token_is_empty = 1;
 	LA $r8,token_is_empty
 	ADDI $r9,$r0,1
-	SW $r8,$r9
+	SW $r9,$r8
 main_case8:
 #; switch(tType) -> if(tType == TOKEN_MINUS)
 	LA $r8,tType
@@ -660,7 +675,7 @@ main_case8:
 #; a[0] = 10;
 	LA $r8,a
 	ADDI $r9,$r0,10
-	SW $r8,$r9
+	SW $r9,$r8
 #; break;
 	J main_endSwitch5
 main_else13:
@@ -669,7 +684,7 @@ main_else13:
 #; a[0] = 11;
 	LA $r8,a
 	ADDI $r9,$r0,11
-	SW $r8,$r9
+	SW $r9,$r8
 #; break;
 	J main_endSwitch5
 main_else14:
@@ -678,7 +693,7 @@ main_else14:
 #; a[0] = 12;
 	LA $r8,a
 	ADDI $r9,$r0,12
-	SW $r8,$r9
+	SW $r9,$r8
 #; break;
 	J main_endSwitch5
 main_else15:
@@ -687,7 +702,7 @@ main_else15:
 #; a[0] = 13;
 	LA $r8,a
 	ADDI $r9,$r0,13
-	SW $r8,$r9
+	SW $r9,$r8
 #; break;
 	J main_endSwitch5
 main_else16:
@@ -696,7 +711,7 @@ main_else16:
 #; a[0] = 15;
 	LA $r8,a
 	ADDI $r9,$r0,15
-	SW $r8,$r9
+	SW $r9,$r8
 #; break;
 	J main_endSwitch5
 main_else17:
@@ -706,7 +721,7 @@ main_else17:
 #; token_is_empty = 1;
 	LA $r8,token_is_empty
 	ADDI $r9,$r0,1
-	SW $r8,$r9
+	SW $r9,$r8
 #; continue
 	J main_endSwitch1
 main_endSwitch5:
@@ -716,7 +731,7 @@ main_endSwitch5:
 #; token_is_empty = 1;
 	LA $r8,token_is_empty
 	ADDI $r9,$r0,1
-	SW $r8,$r9
+	SW $r9,$r8
 	J main_endSwitch1
 main_case1:
 #; pop(b);
@@ -730,7 +745,7 @@ main_case1:
 	LA $r9,gotoLookup
 	ADD $r8,$r9,$r8
 	LA $r9,b
-	SW $r9,$r8
+	SW $r8,$r9
 #; push(b)
 	LA $r4,b
 	CALL push
@@ -750,12 +765,12 @@ main_case7:
 	LA $r9,gotoLookup
 	ADD $r8,$r9,$r8
 	LA $r9,b
-	SW $r9,$r8
+	SW $r8,$r9
 #; b[1] = -b[1];
 	LA $r8,b
 	ADDI $r8,$r0,4
 	MULTI $r9,$r8,-1
-	SW $r8,$r9
+	SW $r9,$r8
 #; push(b);
 	LA $r4,b
 	CALL push
@@ -770,7 +785,7 @@ main_case9:
 #; token_is_empty = 1;
 	LA $r8,token_is_empty
 	ADDI $r9,$r0,1
-	SW $r8,$r9
+	SW $r9,$r8
 	J main_endSwitch1
 main_case15:
 #; sp += 2;
@@ -788,7 +803,7 @@ main_case15:
 	LA $r9,gotoLookup
 	ADD $r8,$r9,$r8
 	LA $r9,b
-	SW $r9,$r8
+	SW $r8,$r9
 #; push(b);
 	LA $r4,b
 	CALL push
@@ -811,7 +826,7 @@ main_case18:
 	LA $r9,gotoLookup
 	ADD $r8,$r9,$r8
 	LA $r9,b
-	SW $r9,$r8
+	SW $r8,$r9
 #; b[1] = a[1] * b[1]
 	LA $r8,a
 	ADDI $r8,$r8,4
@@ -820,7 +835,7 @@ main_case18:
 	ADDI $r9,$r9,4
 	LW $r10,$r9
 	MULT $r10,$r8,$r10,$r0
-	SW $r9,$r10
+	SW $r10,$r9
 #; push(b);
 	LA $r4,b
 	CALL push
@@ -846,7 +861,7 @@ main_case19:
 #; token_is_empty = 1;
 	LA $r8,token_is_empty
 	ADDI $r9,$r0,1
-	SW $r8,$r9
+	SW $r9,$r8
 #; continue;
 	J main_endSwitch1
 main_else18:
@@ -858,7 +873,7 @@ main_else18:
 	LA $r9,gotoLookup
 	ADD $r8,$r9,$r8
 	LA $r9,b
-	SW $r9,$r8
+	SW $r8,$r9
 #; b[1] = b[1] / a[1]
 	LA $r8,a
 	ADDI $r8,$r8,4
@@ -867,7 +882,7 @@ main_else18:
 	ADDI $r9,$r9,4
 	LW $r10,$r9
 	DIV $r10,$r10,$r8,$r0
-	SW $r9,$r10
+	SW $r10,$r9
 #; push(b);
 	LA $r4,b
 	CALL push
@@ -889,7 +904,7 @@ main_case16:
 #; a[0] = 12;
 	LA $r8,a
 	ADDI $r9,$r0,12
-	SW $r8,$r9
+	SW $r9,$r8
 #; break;
 	J main_endSwitch5
 main_else20:
@@ -898,7 +913,7 @@ main_else20:
 #; a[0] = 13;
 	LA $r8,a
 	ADDI $r9,$r0,13
-	SW $r8,$r9
+	SW $r9,$r8
 #; break;
 	J main_endSwitch5
 main_else21:
@@ -908,7 +923,7 @@ main_else21:
 #; token_is_empty = 1;
 	LA $r8,token_is_empty
 	ADDI $r9,$r0,1
-	SW $r8,$r9
+	SW $r9,$r8
 #; continue;
 	J main_endSwitch1
 main_endSwitch5:
@@ -918,7 +933,7 @@ main_endSwitch5:
 #; token_is_empty = 1
 	LA $r8,token_is_empty
 	ADDI $r9,$r0,1
-	SW $r8,$r9
+	SW $r9,$r8
 main_else19:
 #; pop(a);
 	LA $r4,a
@@ -936,7 +951,7 @@ main_else19:
 	LA $r9,gotoLookup
 	ADD $r8,$r9,$r8
 	LA $r9,b
-	SW $r9,$r8
+	SW $r8,$r9
 #; b[1] = b[1] - a[1]
 	LA $r8,a
 	ADDI $r8,$r8,4
@@ -945,7 +960,7 @@ main_else19:
 	ADDI $r9,$r9,4
 	LW $r10,$r9
 	SUB $r10,$r10,$r8
-	SW $r9,$r10
+	SW $r10,$r9
 #; push(b);
 	LA $r4,b
 	CALL push
@@ -967,7 +982,7 @@ main_case17:
 #; a[0] = 12;
 	LA $r8,a
 	ADDI $r9,$r0,12
-	SW $r8,$r9
+	SW $r9,$r8
 #; break;
 	J main_endSwitch5
 main_else23:
@@ -976,7 +991,7 @@ main_else23:
 #; a[0] = 13;
 	LA $r8,a
 	ADDI $r9,$r0,13
-	SW $r8,$r9
+	SW $r9,$r8
 #; break;
 	J main_endSwitch6
 main_else24:
@@ -986,7 +1001,7 @@ main_else24:
 #; token_is_empty = 1;
 	LA $r8,token_is_empty
 	ADDI $r9,$r0,1
-	SW $r8,$r9
+	SW $r9,$r8
 #; continue;
 	J main_endSwitch1
 main_endSwitch6:
@@ -996,7 +1011,7 @@ main_endSwitch6:
 #; token_is_empty = 1
 	LA $r8,token_is_empty
 	ADDI $r9,$r0,1
-	SW $r8,$r9
+	SW $r9,$r8
 main_else22:
 #; pop(a);
 	LA $r4,a
@@ -1014,7 +1029,7 @@ main_else22:
 	LA $r9,gotoLookup
 	ADD $r8,$r9,$r8
 	LA $r9,b
-	SW $r9,$r8
+	SW $r8,$r9
 #; b[1] = b[1] + a[1]
 	LA $r8,a
 	ADDI $r8,$r8,4
@@ -1023,7 +1038,7 @@ main_else22:
 	ADDI $r9,$r9,4
 	LW $r10,$r9
 	ADD $r10,$r10,$r8
-	SW $r9,$r10
+	SW $r10,$r9
 #; push(b);
 	LA $r4,b
 	CALL push
