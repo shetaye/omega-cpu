@@ -58,8 +58,6 @@ nextToken:
 	LA $r10,buffer
 	INPB $r11,$p1
 	OUTPB $r11,$p1
-	ADDI $r16,$r0,65
-	OUTPB $r16,$p1
 	SW $r11,$r10
 #; buffer_is_empty = 0;
 	ADDI $r9,$r0,0
