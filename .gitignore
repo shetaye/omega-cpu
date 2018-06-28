@@ -66,3 +66,7 @@ Hardware/Omega/isim.cmd
 Hardware/Omega/isim/
 Hardware/Omega/pepExtractor.prj
 Hardware/Omega/xilinxsim.ini
+doc/manual/**
+!doc/manual/*.tex
+!doc/manual/*.pdf
+!doc/manual/Makefile
